@@ -118,7 +118,8 @@ gulp.task('wiredep', function () {
   var wiredep = require('wiredep').stream;
 <% if (includeSass) { %>
   gulp.src('app/styles/*.scss')
-    .pipe(wiredep({
+    .pipe(wiredep({<% if (includeBootstrap) { %>
+      exclude: ['bootstrap-sass-official'],<% } %>
       ignorePath: /^(\.\.\/)+/
     }))
     .pipe(gulp.dest('app/styles'));

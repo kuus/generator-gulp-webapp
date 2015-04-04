@@ -1,122 +1,82 @@
-<% if (includeBootstrap) { %>$icon-font-path: '../fonts/';
+<% if (includeBootstrap) { %>
+/**
+ * Bootstrap custom $variables
+ * Override defaults values.
+ *
+ */
+$icon-font-path:                           '../fonts/';
 
+/**
+ * Bootstrap @imports
+ * Import only the needed components.
+ *
+ */
+// Core variables and mixins
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/variables";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/mixins";
+
+// Reset and dependencies
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/normalize";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/print";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/glyphicons";
+
+// Core CSS
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/scaffolding";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/type";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/code";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/grid";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/tables";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/forms";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/buttons";
+
+// Components
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/component-animations";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/dropdowns";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/button-groups";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/input-groups";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/navs";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/navbar";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/breadcrumbs";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/pagination";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/pager";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/labels";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/badges";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/jumbotron";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/thumbnails";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/alerts";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/progress-bars";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/media";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/list-group";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/panels";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/responsive-embed";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/wells";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/close";
+
+// Components w/ JavaScript
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/modals";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/tooltip";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/popovers";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/carousel";
+
+// Utility classes
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/utilities";
+@import "bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/responsive-utilities";
+<% } else { %>
+<% } %>
+
+/**
+ * Bower scss components
+ * (injected through wiredep).
+ *
+ */
 // bower:scss
 // endbower
 
-.browserupgrade {
-  margin: 0.2em 0;
-  background: #ccc;
-  color: #000;
-  padding: 0.2em 0;
-}
 
-/* Space out content a bit */
-body {
-  padding-top: 20px;
-  padding-bottom: 20px;
-}
+/**
+ * <%= appname %> $variables and @imports
+ *
+ */
+$my-var:                           #fff;
 
-/* Everything but the jumbotron gets side spacing for mobile first views */
-.header,
-.marketing,
-.footer {
-  padding-left: 15px;
-  padding-right: 15px;
-}
-
-/* Custom page header */
-.header {
-  border-bottom: 1px solid #e5e5e5;
-
-  /* Make the masthead heading the same height as the navigation */
-  h3 {
-    margin-top: 0;
-    margin-bottom: 0;
-    line-height: 40px;
-    padding-bottom: 19px;
-  }
-}
-
-/* Custom page footer */
-.footer {
-  padding-top: 19px;
-  color: #777;
-  border-top: 1px solid #e5e5e5;
-}
-
-.container-narrow > hr {
-  margin: 30px 0;
-}
-
-/* Main marketing message and sign up button */
-.jumbotron {
-  text-align: center;
-  border-bottom: 1px solid #e5e5e5;
-  .btn {
-    font-size: 21px;
-    padding: 14px 24px;
-  }
-}
-
-/* Supporting marketing content */
-.marketing {
-  margin: 40px 0;
-  p + h4 {
-    margin-top: 28px;
-  }
-}
-
-/* Responsive: Portrait tablets and up */
-@media screen and (min-width: 768px) {
-  .container {
-    max-width: 730px;
-  }
-
-  /* Remove the padding we set earlier */
-  .header,
-  .marketing,
-  .footer {
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  /* Space out the masthead */
-  .header {
-    margin-bottom: 30px;
-  }
-
-  /* Remove the bottom border on the jumbotron for visual effect */
-  .jumbotron {
-    border-bottom: 0;
-  }
-}<% } else { %>// bower:scss
-// endbower
-
-body {
-  background: #fafafa;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  color: #333;
-}
-
-.hero-unit {
-  margin: 50px auto 0 auto;
-  width: 300px;
-  font-size: 18px;
-  font-weight: 200;
-  line-height: 30px;
-  background-color: #eee;
-  border-radius: 6px;
-  padding: 60px;
-  h1 {
-    font-size: 60px;
-    line-height: 1;
-    letter-spacing: -1px;
-  }
-}
-
-.browserupgrade {
-  margin: 0.2em 0;
-  background: #ccc;
-  color: #000;
-  padding: 0.2em 0;
-}<% } %>
+// @import "icons";
