@@ -144,7 +144,7 @@ gulp.task('default', ['clean'], function () {
 });
 
 gulp.task('views', function () {
-  return gulp.src('app/*.jade', '!app/_base.jade')
+  return gulp.src(['app/*.jade', '!app/_base.jade'])
     .pipe($.jade({pretty: true}))
     .pipe(gulp.dest('.tmp'));
 });
