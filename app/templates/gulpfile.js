@@ -20,7 +20,7 @@ gulp.task('styles', function () {<% if (includeSass) { %>
     .pipe($.postcss([
       require('autoprefixer-core')({browsers: ['last 2 versions', 'ie 8']})
     ]))
-    .pipe($.combineMediaQueries({ log: true }))
+    .pipe($.combineMediaQueries()) // { log: true }
     .pipe($.sourcemaps.write())
     .pipe(gulp.dest('.tmp/styles'))
     .pipe(reload({stream: true}));
