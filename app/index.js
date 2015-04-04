@@ -142,7 +142,7 @@ module.exports = yeoman.generators.Base.extend({
     },
 
     writeIndex: function () {
-      this.indexFile = this.src.read('index.html');
+      this.indexFile = this.src.read('_base.jade');
       this.indexFile = this.engine(this.indexFile, this);
 
       // wire Bootstrap plugins
@@ -178,7 +178,7 @@ module.exports = yeoman.generators.Base.extend({
         sourceFileList: ['scripts/main.js']
       });
 
-      this.write('app/index.html', this.indexFile);
+      this.write('app/_base.jade', this.indexFile);
     },
 
     app: function () {
@@ -187,7 +187,13 @@ module.exports = yeoman.generators.Base.extend({
       this.mkdir('app/styles');
       this.mkdir('app/images');
       this.mkdir('app/fonts');
-      this.copy('main.js', 'app/scripts/main.js');
+      this.mkdir('app/layouts');
+      this.mkdir('app/layouts/partials');
+
+      this.copy('_base.jade', 'app/_base.jade');
+      this.copy('default.jade', 'app/layouts/default.jade');
+      this.copy('header.jade', 'app/layouts/partials/header.jade');
+      this.copy('footer.jade', 'app/layouts/partials/footer.jade');
     }
   },
 
