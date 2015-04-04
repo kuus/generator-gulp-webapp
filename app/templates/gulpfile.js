@@ -19,7 +19,7 @@ var banner = [
 // Proprietary and confidential
 // Written by Elmer Fudd <efudd@yoyodyne.com>, September 1943
 
-gulp.task('styles', function () {<% if (includeSass) { %>
+gulp.task('styles', function () {
   return gulp.src('app/styles/main.scss')
     .pipe($.sourcemaps.init())
     .pipe($.sass({
@@ -27,9 +27,7 @@ gulp.task('styles', function () {<% if (includeSass) { %>
       precision: 10,
       includePaths: ['.'],
       onError: console.error.bind(console, 'Sass error:')
-    }))<% } else { %>
-  return gulp.src('app/styles/main.css')
-    .pipe($.sourcemaps.init())<% } %>
+    }))
     .pipe($.postcss([
       require('autoprefixer-core')({browsers: ['last 2 versions', 'ie 8']})
     ]))
@@ -114,7 +112,7 @@ gulp.task('serve', ['views', 'styles', 'fonts'], function () {
   ]).on('change', reload);
 
   gulp.watch(['app/*.jade', 'app/layouts/**/*.jade'], ['views', reload]);
-  gulp.watch('app/styles/**/*.<%= includeSass ? 'scss' : 'css' %>', ['styles']);
+  gulp.watch('app/styles/**/*.scss', ['styles']);
   gulp.watch('app/fonts/**/*', ['fonts']);
   gulp.watch('bower.json', ['wiredep', 'fonts']);
 });
@@ -132,16 +130,16 @@ gulp.task('serve:dist', function () {
 // inject bower components
 gulp.task('wiredep', function () {
   var wiredep = require('wiredep').stream;
-<% if (includeSass) { %>
+
   gulp.src('app/styles/*.scss')
     .pipe(wiredep({<% if (includeBootstrap) { %>
       exclude: ['bootstrap-sass-official'],<% } %>
       ignorePath: /^(\.\.\/)+/
     }))
     .pipe(gulp.dest('app/styles'));
-<% } %>
+
   gulp.src('app/layouts/*.jade')
-    .pipe(wiredep({<% if (includeSass && includeBootstrap) { %>
+    .pipe(wiredep({<% if (includeBootstrap) { %>
       exclude: ['bootstrap-sass-official'],<% } %>
       ignorePath: /^(\.\.\/)*\.\./
     }))

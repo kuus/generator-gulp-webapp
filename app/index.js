@@ -33,7 +33,7 @@ module.exports = yeoman.generators.Base.extend({
   },
 
   initializing: function () {
-    this.pkg = require('../package.json');
+    this._pkg = require('../package.json');
   },
 
   prompting: function () {
@@ -48,10 +48,6 @@ module.exports = yeoman.generators.Base.extend({
       name: 'features',
       message: 'What more would you like?',
       choices: [{
-        name: 'Sass',
-        value: 'includeSass',
-        checked: true
-      }, {
         name: 'Bootstrap',
         value: 'includeBootstrap',
         checked: true
@@ -71,26 +67,24 @@ module.exports = yeoman.generators.Base.extend({
 
       // manually deal with the response, get back and store the results.
       // we change a bit this way of doing to automatically do this in the self.prompt() method.
-      this.includeSass = hasFeature('includeSass');
       this.includeBootstrap = hasFeature('includeBootstrap');
       this.includeModernizr = hasFeature('includeModernizr');
+
+      this.template('_package.json', 'package.json');
+      this.pkg = require('./templates/_package.json');
 
       done();
     }.bind(this));
   },
 
   writing: {
-    gulpfile: function () {
-      this.template('gulpfile.js');
+    packageJSON: function () {
+      // this.template('_package.json', 'package.json');
+      this.pkg = require('./templates/_package.json');
     },
 
-    packageJSON: function () {
-      // var pkg = {
-        // this.pkgInfo
-      this.pkgInfo = {
-        ale: 'sdasdasdasda'
-      };
-      this.template('_package.json', 'package.json');
+    gulpfile: function () {
+      this.template('gulpfile.js');
     },
 
     git: function () {
@@ -106,7 +100,7 @@ module.exports = yeoman.generators.Base.extend({
       };
 
       if (this.includeBootstrap) {
-        var bs = 'bootstrap' + (this.includeSass ? '-sass-official' : '');
+        var bs = 'bootstrap-sass-official';
         bower.dependencies[bs] = '~3.3.1';
       } else {
         bower.dependencies.jquery = '~2.1.1';
@@ -135,15 +129,7 @@ module.exports = yeoman.generators.Base.extend({
     },
 
     mainStylesheet: function () {
-      var css = 'main';
-
-      if (this.includeSass) {
-        css += '.scss';
-      } else {
-        css += '.css';
-      }
-
-      this.copy(css, 'app/styles/' + css);
+      this.copy('main.scss', 'app/styles/main.scss');
     },
 
     writeIndex: function () {
@@ -152,13 +138,7 @@ module.exports = yeoman.generators.Base.extend({
 
       // wire Bootstrap plugins
       if (this.includeBootstrap) {
-        var bs = '/bower_components/';
-
-        if (this.includeSass) {
-          bs += 'bootstrap-sass-official/assets/javascripts/bootstrap/';
-        } else {
-          bs += 'bootstrap/js/';
-        }
+        var bs = '/bower_components/bootstrap-sass-official/assets/javascripts/bootstrap/';
 
         this.indexFile = this.appendScripts(this.indexFile, 'scripts/plugins.js', [
           bs + 'affix.js',
