@@ -18,8 +18,9 @@ gulp.task('styles', function () {<% if (includeSass) { %>
   return gulp.src('app/styles/main.css')
     .pipe($.sourcemaps.init())<% } %>
     .pipe($.postcss([
-      require('autoprefixer-core')({browsers: ['last 1 version']})
+      require('autoprefixer-core')({browsers: ['last 2 versions', 'ie 8']})
     ]))
+    .pipe($.combineMediaQueries({ log: true }))
     .pipe($.sourcemaps.write())
     .pipe(gulp.dest('.tmp/styles'))
     .pipe(reload({stream: true}));
