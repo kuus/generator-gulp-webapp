@@ -1,9 +1,9 @@
 {
-  "name": "generator-gulp-webapp",
+  "name": "generator-kuus-gulp-webapp",
   "version": "0.3.0",
   "description": "Scaffold out a front-end web app",
   "license": "BSD",
-  "repository": "yeoman/generator-gulp-webapp",
+  "repository": "kuus/generator-gulp-webapp",
   "author": "The Yeoman Team",
   "main": "app/index.js",
   "engines": {
