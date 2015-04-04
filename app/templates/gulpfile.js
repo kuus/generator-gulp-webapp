@@ -10,9 +10,10 @@ var banner = [
   '/*!',
   ' *<%=" \<%- pkg.config.namePretty %\> v\<%- pkg.version %\> (\<%- pkg.homepage %\>)" %>',
   ' *<%=" \<%- pkg.description %\>" %>',
-  ' *<%=" Copyright \<%- pkg.config.startYear %\>\<% if (new Date().getFullYear() > pkg.config.startYear) { %\>-\<%- new Date().getFullYear() %\>\<% } %\> \<%- pkg.author.name %\> <\<%- pkg.author.email %\>> (\<%- pkg.author.url %\>)" %>',
-  ' *<%=" \<%- pkg.license.type %\>\<% if (pkg.license.url) { %\> (\<%- pkg.license.url %\>)\<% } %\>" %>',
-  ' */'
+  ' *',
+  ' *<%=" by \<%- pkg.author.name %\> <\<%- pkg.author.email %\>> (\<%- pkg.author.url %\>)" %>',
+  ' *<%=" \<%- pkg.license.type %\> \<%- pkg.config.startYear %\>\<% if (new Date().getFullYear() > pkg.config.startYear) { %\>-\<%- new Date().getFullYear() %\>\<% } %\>\<% if (pkg.license.url) { %\> (\<%- pkg.license.url %\>)\<% } %\>" %>',
+  ' */\n'
 ].join('\n');
 
 gulp.task('styles', function () {
@@ -47,8 +48,10 @@ gulp.task('html', ['views', 'styles'], function () {
   return gulp.src(['app/*.html', '.tmp/*.html'])
     .pipe(assets)
     .pipe($.if('*.js', $.uglify({ preserveComments: 'some' })))
+    .pipe($.if('*.js', $.stripDebug()))
+    .pipe($.if('*.js', $.header(banner, { pkg: require('./package.json') })))
     .pipe($.if('*.css', $.minifyCss({ compatibility: 'ie8,+units.rem' }))) // $.csso()
-    .pipe($.if('*/main.*', $.header(banner, { pkg: require('./package.json') })))
+    .pipe($.if('*.css', $.header(banner, { pkg: require('./package.json') })))
     .pipe(assets.restore())
     .pipe($.useref())
     .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
