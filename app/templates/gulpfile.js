@@ -5,6 +5,19 @@ var gulp = require('gulp');
 var $ = require('gulp-load-plugins')();
 var browserSync = require('browser-sync');
 var reload = browserSync.reload;
+var argv = require('minimist')(process.argv.slice(2));
+var banner = [
+  '/*!',
+  ' * <%= pkg.config.namePretty %> v<%= pkg.version %> (<%= pkg.homepage %>)',
+  ' * <%= pkg.description %>',
+  ' * Copyright <%= pkg.config.startYear %><% if (new Date().getFullYear() > pkg.config.startYear) { %>-<%= new Date().getFullYear() %><% } %> <%= pkg.author.name %> <<%= pkg.author.email %>> (<%= pkg.author.url %>)',
+  ' * <%= pkg.license.type %> (<%= pkg.license.url %>)',
+  ' */'
+].join('\n');
+
+// Unauthorized copying of this file, via any medium is strictly prohibited
+// Proprietary and confidential
+// Written by Elmer Fudd <efudd@yoyodyne.com>, September 1943
 
 gulp.task('styles', function () {<% if (includeSass) { %>
   return gulp.src('app/styles/main.scss')

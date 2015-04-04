@@ -1,4 +1,26 @@
 {
+  "name": "project-name",
+  "version": "0.0.1",
+  "description": "Project description",
+  "config": {
+    "namePretty": "Project Name",
+    "nameShort": "project-name-short",
+    "startYear": 2014
+  },
+  "homepage": "http://project.com",
+  "author": {
+    "name": "kuus<%- pkgInfo.ale %>",
+    "email": "kunderikuus@gmail.com",
+    "url": "http://kunderikuus.net/"
+  },
+  "license": {
+    "type": "Copyright (C) kunderi kuus, Inc - All Rights Reserved",
+    "url": ""
+  },
+  "private": true,
+  "repository": {
+    "url": "https://gitlab.com/kuus/project-name"
+  },
   "private": true,
   "engines": {
     "node": ">=0.12.0"

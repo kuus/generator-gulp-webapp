@@ -85,6 +85,11 @@ module.exports = yeoman.generators.Base.extend({
     },
 
     packageJSON: function () {
+      // var pkg = {
+        // this.pkgInfo
+      this.pkgInfo = {
+        ale: 'sdasdasdasda'
+      };
       this.template('_package.json', 'package.json');
     },
 
