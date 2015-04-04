@@ -3,6 +3,6 @@
 (function (window, document){
   'use strict';
 
-  console.log('main.js run');
+  console.log('main.js run', window, document);
 
 })(window, document);
