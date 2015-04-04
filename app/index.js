@@ -5,6 +5,8 @@ var yeoman = require('yeoman-generator');
 var yosay = require('yosay');
 var chalk = require('chalk');
 var wiredep = require('wiredep');
+var lodash = require('lodash');
+var changeCase = require('change-case');
 
 module.exports = yeoman.generators.Base.extend({
   constructor: function () {
@@ -33,7 +35,7 @@ module.exports = yeoman.generators.Base.extend({
   },
 
   initializing: function () {
-    this._pkg = require('../package.json');
+    this.pkg = require('../package.json');
   },
 
   prompting: function () {
@@ -44,6 +46,11 @@ module.exports = yeoman.generators.Base.extend({
     }
 
     var prompts = [{
+    //   type: 'input',
+    //   name: 'name',
+    //   message: 'Your project name',
+    //   default: this.appname
+    // }, {
       type: 'checkbox',
       name: 'features',
       message: 'What more would you like?',
@@ -65,13 +72,23 @@ module.exports = yeoman.generators.Base.extend({
         return features.indexOf(feat) !== -1;
       };
 
+      var toShortName = function (string) {
+        var splitted = string.split(' ');
+        var shortname = '';
+        splitted.forEach(function (word) {
+          shortname += word.substr(0, 2);
+        });
+        return shortname;
+      };
+
       // manually deal with the response, get back and store the results.
       // we change a bit this way of doing to automatically do this in the self.prompt() method.
       this.includeBootstrap = hasFeature('includeBootstrap');
       this.includeModernizr = hasFeature('includeModernizr');
 
-      this.template('_package.json', 'package.json');
-      this.pkg = require('./templates/_package.json');
+      this.appPrettyName = changeCase.titleCase(this.appname);
+      this.appShortName = toShortName(changeCase.snakeCase(this.appname));
+      this.appYear = new Date().getFullYear();
 
       done();
     }.bind(this));
@@ -79,8 +96,7 @@ module.exports = yeoman.generators.Base.extend({
 
   writing: {
     packageJSON: function () {
-      // this.template('_package.json', 'package.json');
-      this.pkg = require('./templates/_package.json');
+      this.template('_package.json', 'package.json');
     },
 
     gulpfile: function () {

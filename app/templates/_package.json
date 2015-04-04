@@ -1,15 +1,15 @@
 {
-  "name": "project-name",
+  "name": "<%- appname %>",
   "version": "0.0.1",
   "description": "Project description",
   "config": {
-    "namePretty": "Project Name",
-    "nameShort": "project-name-short",
-    "startYear": 2014
+    "namePretty": "<%- appPrettyName %>",
+    "nameShort": "<%- appShortName %>",
+    "startYear": <%- appYear %>
   },
-  "homepage": "http://project.com",
+  "homepage": "http://<%- appname %>.com",
   "author": {
-    "name": "kuus<%- pkg.name %>",
+    "name": "kuus",
     "email": "kunderikuus@gmail.com",
     "url": "http://kunderikuus.net/"
   },
@@ -19,9 +19,8 @@
   },
   "private": true,
   "repository": {
-    "url": "https://gitlab.com/kuus/project-name"
+    "url": "https://gitlab.com/kuus/<%- appname %>"
   },
-  "private": true,
   "engines": {
     "node": ">=0.12.0"
   },

@@ -8,16 +8,12 @@ var reload = browserSync.reload;
 var argv = require('minimist')(process.argv.slice(2));
 var banner = [
   '/*!',
-  ' * <%= pkg.config.namePretty %> v<%= pkg.version %> (<%= pkg.homepage %>)',
-  ' * <%= pkg.description %>',
-  ' * Copyright <%= pkg.config.startYear %><% if (new Date().getFullYear() > pkg.config.startYear) { %>-<%= new Date().getFullYear() %><% } %> <%= pkg.author.name %> <<%= pkg.author.email %>> (<%= pkg.author.url %>)',
-  ' * <%= pkg.license.type %> (<%= pkg.license.url %>)',
+  ' *<%=" \<%- pkg.config.namePretty %\> v\<%- pkg.version %\> (\<%- pkg.homepage %\>)" %>',
+  ' *<%=" \<%- pkg.description %\>" %>',
+  ' *<%=" Copyright \<%- pkg.config.startYear %\>\<% if (new Date().getFullYear() > pkg.config.startYear) { %\>-\<%- new Date().getFullYear() %\>\<% } %\> \<%- pkg.author.name %\> <\<%- pkg.author.email %\>> (\<%- pkg.author.url %\>)" %>',
+  ' *<%=" \<%- pkg.license.type %\>\<% if (pkg.license.url) { %\> (\<%- pkg.license.url %\>)\<% } %\>" %>',
   ' */'
 ].join('\n');
-
-// Unauthorized copying of this file, via any medium is strictly prohibited
-// Proprietary and confidential
-// Written by Elmer Fudd <efudd@yoyodyne.com>, September 1943
 
 gulp.task('styles', function () {
   return gulp.src('app/styles/main.scss')
@@ -52,6 +48,7 @@ gulp.task('html', ['views', 'styles'], function () {
     .pipe(assets)
     .pipe($.if('*.js', $.uglify({ preserveComments: 'some' })))
     .pipe($.if('*.css', $.minifyCss({ compatibility: 'ie8,+units.rem' }))) // $.csso()
+    .pipe($.if('main.*', $.header(banner, { pkg: require('./package.json') })))
     .pipe(assets.restore())
     .pipe($.useref())
     .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
@@ -94,6 +91,7 @@ gulp.task('serve', ['views', 'styles', 'fonts'], function () {
   browserSync({
     notify: false,
     port: 9000,
+    open: (!!argv.o || !!argv.open) || false
     server: {
       baseDir: ['.tmp', 'app'],
       routes: {
@@ -121,6 +119,7 @@ gulp.task('serve:dist', function () {
   browserSync({
     notify: false,
     port: 9000,
+    open: (!!argv.o || !!argv.open) || false
     server: {
       baseDir: ['dist']
     }
