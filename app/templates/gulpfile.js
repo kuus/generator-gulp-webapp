@@ -48,7 +48,7 @@ gulp.task('html', ['views', 'styles'], function () {
     .pipe(assets)
     .pipe($.if('*.js', $.uglify({ preserveComments: 'some' })))
     .pipe($.if('*.css', $.minifyCss({ compatibility: 'ie8,+units.rem' }))) // $.csso()
-    .pipe($.if('main.*', $.header(banner, { pkg: require('./package.json') })))
+    .pipe($.if('*/main.*', $.header(banner, { pkg: require('./package.json') })))
     .pipe(assets.restore())
     .pipe($.useref())
     .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
@@ -91,7 +91,7 @@ gulp.task('serve', ['views', 'styles', 'fonts'], function () {
   browserSync({
     notify: false,
     port: 9000,
-    open: (!!argv.o || !!argv.open) || false
+    open: (!!argv.o || !!argv.open) || false,
     server: {
       baseDir: ['.tmp', 'app'],
       routes: {
@@ -119,7 +119,7 @@ gulp.task('serve:dist', function () {
   browserSync({
     notify: false,
     port: 9000,
-    open: (!!argv.o || !!argv.open) || false
+    open: (!!argv.o || !!argv.open) || false,
     server: {
       baseDir: ['dist']
     }
