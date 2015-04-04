@@ -191,6 +191,7 @@ module.exports = yeoman.generators.Base.extend({
       this.mkdir('app/layouts/partials');
 
       this.copy('_base.jade', 'app/_base.jade');
+      this.copy('index.jade', 'app/index.jade');
       this.copy('default.jade', 'app/layouts/default.jade');
       this.copy('header.jade', 'app/layouts/partials/header.jade');
       this.copy('footer.jade', 'app/layouts/partials/footer.jade');
