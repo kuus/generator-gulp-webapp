@@ -149,9 +149,7 @@ gulp.task('build', ['jshint', 'html', 'images', 'fonts', 'extras'], function () 
   return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
 });
 
-gulp.task('default', ['clean'], function () {
-  gulp.start('build');
-});
+gulp.task('default', ['serve']);
 
 gulp.task('views', function () {
   return gulp.src(['app/*.jade', '!app/_base.jade'])
