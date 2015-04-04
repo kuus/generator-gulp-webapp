@@ -1,6 +1,6 @@
 # Web app generator [![Build Status](https://secure.travis-ci.org/yeoman/generator-gulp-webapp.svg?branch=master)](http://travis-ci.org/yeoman/generator-gulp-webapp)
 
-Fork of `generator-gulp-webapp`, see README.md at original [yeoman repo](https://github.com/yeoman/generator-gulp-webapp).
+Fork of `generator-gulp-webapp`, see [original repo](https://github.com/yeoman/generator-gulp-webapp).
 
 ## Diff from original
  - Use as default the [jade](http://jade-lang.com/) [official recipe](https://github.com/yeoman/generator-gulp-webapp/blob/master/docs/recipes/jade.md).
