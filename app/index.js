@@ -230,16 +230,6 @@ module.exports = yeoman.generators.Base.extend({
         src: 'app/index.html'
       });
 
-      if (this.includeSass) {
-        // wire Bower packages to .scss
-        wiredep({
-          bowerJson: bowerJson,
-          directory: 'bower_components',
-          ignorePath: /^(\.\.\/)+/,
-          src: 'app/styles/*.scss'
-        });
-      }
-
       // ideally we should use composeWith, but we're invoking it here
       // because generator-mocha is changing the working directory
       // https://github.com/yeoman/generator-mocha/issues/28
