@@ -47,8 +47,7 @@ gulp.task('html', ['views', 'styles'], function () {
 
   return gulp.src(['app/*.html', '.tmp/*.html'])
     .pipe(assets)
-    .pipe($.if('*.js', $.uglify({ preserveComments: 'some' })))
-    .pipe($.if('*.js', $.stripDebug()))
+    .pipe($.if('*.js', $.uglify({ preserveComments: 'some', compress: { drop_console: true } })))
     .pipe($.if('*.js', $.header(banner, { pkg: require('./package.json') })))
     .pipe($.if('*.css', $.minifyCss({ compatibility: 'ie8,+units.rem' }))) // $.csso()
     .pipe($.if('*.css', $.header(banner, { pkg: require('./package.json') })))
