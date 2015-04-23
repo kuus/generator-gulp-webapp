@@ -140,7 +140,7 @@ gulp.task('wiredep', function () {
     }))
     .pipe(gulp.dest('app/styles'));
 
-  gulp.src('app/layouts/*.jade')
+  gulp.src('app/*.jade')
     .pipe(wiredep({<% if (includeBootstrap) { %>
       exclude: ['bootstrap-sass-official'],<% } %>
       ignorePath: /^(\.\.\/)*\.\./
