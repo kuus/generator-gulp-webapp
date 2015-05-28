@@ -116,7 +116,7 @@ module.exports = yeoman.generators.Base.extend({
       };
 
       if (this.includeBootstrap) {
-        var bs = 'bootstrap-sass-official';
+        var bs = 'bootstrap-sass';
         bower.dependencies[bs] = '~3.3.1';
       } else {
         bower.dependencies.jquery = '~2.1.1';
@@ -154,7 +154,7 @@ module.exports = yeoman.generators.Base.extend({
 
       // wire Bootstrap plugins
       if (this.includeBootstrap) {
-        var bs = '/bower_components/bootstrap-sass-official/assets/javascripts/bootstrap/';
+        var bs = '/bower_components/bootstrap-sass/assets/javascripts/bootstrap/';
 
         this.indexFile = this.appendScripts(this.indexFile, 'scripts/plugins.js', [
           bs + 'affix.js',

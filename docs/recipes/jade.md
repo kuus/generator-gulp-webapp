@@ -110,7 +110,7 @@ Wiredep supports Jade:
 -  gulp.src('app/*.html')
 +  gulp.src('app/layouts/*.jade')
      .pipe(wiredep({
-       exclude: ['bootstrap-sass-official'],
+       exclude: ['bootstrap-sass'],
        ignorePath: /^(\.\.\/)*\.\./
      }))
      .pipe(gulp.dest('app/layouts'));
@@ -134,9 +134,9 @@ Recompile Jade templates on each change and reload the browser after an HTML fil
      'app/images/**/*'
    ]).on('change', reload);
 
-+  gulp.watch('app/**/*.jade', ['views', reload]);
-   gulp.watch('app/styles/**/*.scss', ['styles', reload]);
-   gulp.watch('bower.json', ['wiredep', 'fonts', reload]);
++  gulp.watch('app/**/*.jade', ['views']);
+   gulp.watch('app/styles/**/*.scss', ['styles']);
+   gulp.watch('bower.json', ['wiredep', 'fonts']);
 });
 ```
 
