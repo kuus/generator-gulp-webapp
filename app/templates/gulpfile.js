@@ -53,7 +53,7 @@ gulp.task('_html', [<% if (useTemplateLanguage) { %>'views', <% } %>'styles'], f
   return gulp.src(['app/*.html', '.tmp/*.html'])
     .pipe(assets)
     .pipe($.if('*.js', $.uglify({ preserveComments: 'some', compress: { drop_console: true } })))
-    .pipe($.if('*.css', $.minifyCss({ compatibility: 'ie8,+units.rem' }))) // $.csso()
+    .pipe($.if('*.css', $.minifyCss({ compatibility: 'ie8,+units.rem' })))
     .pipe(assets.restore())
     .pipe($.useref())
     .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
