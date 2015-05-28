@@ -7,7 +7,7 @@ header.header
           span.icon-bar
           span.icon-bar
           span.icon-bar
-        a.navbar-brand(href='/') <%= appname %>
+        a.navbar-brand(href='/')= common.appName
       #navbar.navbar-collapse.collapse
         ul.nav.navbar-nav
           li.active: a(href='/') Home
@@ -20,4 +20,4 @@ header.header
             ul.dropdown-menu(role='menu')
               li: a(href='/') Action
         ul.nav.navbar-nav.navbar-right
-          li: a(href='/') Static
+          li: a(href='/')= dummy.user.name

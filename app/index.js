@@ -61,7 +61,24 @@ module.exports = yeoman.generators.Base.extend({
       }, {
         name: 'Modernizr',
         value: 'includeModernizr',
+        checked: false
+      }]
+    }, {
+      type: 'list',
+      name: 'templating',
+      message: 'Which template language you want to use?',
+      choices: [{
+        name: 'Swig',
+        value: 'swig',
         checked: true
+      }, {
+        name: 'Jade',
+        value: 'jade',
+        checked: false
+      }, {
+        name: 'None',
+        value: 'none',
+        checked: false
       }]
     }];
 
@@ -86,8 +103,14 @@ module.exports = yeoman.generators.Base.extend({
       this.includeBootstrap = hasFeature('includeBootstrap');
       this.includeModernizr = hasFeature('includeModernizr');
 
+      this.useTemplateLanguage = answers.templating !== '';
+      this.tplLangExt = this.useTemplateLanguage ? answers.templating : 'html';
+      this.useJade = answers.templating === 'jade';
+      this.useSwig = answers.templating === 'swig';
+
       this.appPrettyName = changeCase.titleCase(this.appname);
       this.appShortName = toShortName(changeCase.snakeCase(this.appname));
+      this.appname = changeCase.paramCase(this.appname);
       this.appYear = new Date().getFullYear();
 
       done();
@@ -110,7 +133,7 @@ module.exports = yeoman.generators.Base.extend({
 
     bower: function () {
       var bower = {
-        name: this._.slugify(this.appname),
+        name: this.appname,
         private: true,
         dependencies: {}
       };
@@ -149,7 +172,9 @@ module.exports = yeoman.generators.Base.extend({
     },
 
     writeIndex: function () {
-      this.indexFile = this.src.read('_base.jade');
+      var indexFileName = this.useTemplateLanguage ? '_base' : 'index';
+      indexFileName += '.' + this.tplLangExt;
+      this.indexFile = this.src.read(indexFileName);
       this.indexFile = this.engine(this.indexFile, this);
 
       // wire Bootstrap plugins
@@ -179,24 +204,33 @@ module.exports = yeoman.generators.Base.extend({
         sourceFileList: ['scripts/main.js']
       });
 
-      this.write('app/_base.jade', this.indexFile);
+      this.write('app/' + indexFileName, this.indexFile);
     },
 
     app: function () {
+      var ext = this.tplLangExt;
+
       this.mkdir('app');
       this.mkdir('app/scripts');
       this.mkdir('app/styles');
       this.mkdir('app/images');
       this.mkdir('app/fonts');
-      this.mkdir('app/layouts');
-      this.mkdir('app/layouts/partials');
-
       this.copy('main.js', 'app/scripts/main.js');
-      this.copy('_base.jade', 'app/_base.jade');
-      this.copy('index.jade', 'app/index.jade');
-      this.copy('default.jade', 'app/layouts/default.jade');
-      this.copy('header.jade', 'app/layouts/partials/header.jade');
-      this.copy('footer.jade', 'app/layouts/partials/footer.jade');
+      this.copy('index.' + ext, 'app/index.' + ext);
+
+      if (this.useTemplateLanguage) {
+        this.copy('_base.' + ext, 'app/_base.' + ext);
+        this.mkdir('app/layouts');
+        this.mkdir('app/layouts/partials');
+        this.copy('layouts/default.' + ext, 'app/layouts/default.' + ext);
+        this.copy('layouts/partials/header.' + ext, 'app/layouts/partials/header.' + ext);
+        this.copy('layouts/partials/footer.' + ext, 'app/layouts/partials/footer.' + ext);
+
+        this.mkdir('app/data');
+        this.template('data/_common.json', 'app/data/_common.json');
+        this.template('data/_dummy.json', 'app/data/_dummy.json');
+        this.template('data/index.json', 'app/data/index.json');
+      }
     }
   },
 
@@ -221,6 +255,8 @@ module.exports = yeoman.generators.Base.extend({
 
     this.on('end', function () {
       var bowerJson = this.dest.readJSON('bower.json');
+      var indexFileName = this.useTemplateLanguage ? '_base' : 'index';
+      indexFileName += '.' + this.tplLangExt;
 
       // wire Bower packages to .html
       wiredep({
@@ -228,7 +264,7 @@ module.exports = yeoman.generators.Base.extend({
         directory: 'bower_components',
         exclude: ['bootstrap-sass', 'bootstrap.js'],
         ignorePath: /^(\.\.\/)*\.\./,
-        src: 'app/index.html'
+        src: 'app/' + indexFileName
       });
 
       // ideally we should use composeWith, but we're invoking it here

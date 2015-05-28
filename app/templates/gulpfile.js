@@ -1,6 +1,7 @@
-/*global -$ */
+/* global -$ */
 'use strict';
 // generated on <%= (new Date).toISOString().split('T')[0] %> using <%= pkg.name %> <%= pkg.version %>
+
 var gulp = require('gulp');
 var $ = require('gulp-load-plugins')();
 var browserSync = require('browser-sync');
@@ -46,18 +47,22 @@ function jshint(files) {
 gulp.task('jshint', jshint('app/scripts/**/*.js'));
 gulp.task('jshint:test', jshint('test/spec/**/*.js'));
 
-gulp.task('html', ['views', 'styles'], function () {
+gulp.task('_html', [<% if (useTemplateLanguage) { %>'views', <% } %>'styles'], function () {
   var assets = $.useref.assets({searchPath: ['.tmp', 'app', '.']});
 
   return gulp.src(['app/*.html', '.tmp/*.html'])
     .pipe(assets)
     .pipe($.if('*.js', $.uglify({ preserveComments: 'some', compress: { drop_console: true } })))
-    .pipe($.if('*.js', $.header(banner, { pkg: require('./package.json') })))
     .pipe($.if('*.css', $.minifyCss({ compatibility: 'ie8,+units.rem' }))) // $.csso()
-    .pipe($.if('*.css', $.header(banner, { pkg: require('./package.json') })))
     .pipe(assets.restore())
     .pipe($.useref())
     .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
+    .pipe(gulp.dest('dist'));
+});
+
+gulp.task('html', ['_html'], function () {
+  return gulp.src(['dist/scripts/main.js', 'dist/styles/main.css'], { base: 'dist' })
+    .pipe($.header(banner, { pkg: require('./package.json') }))
     .pipe(gulp.dest('dist'));
 });
 
@@ -84,9 +89,9 @@ gulp.task('fonts', function () {
 
 gulp.task('extras', function () {
   return gulp.src([
-    'app/*.*',
-    '!app/*.html',
-    '!app/*.jade'
+    'app/*.*',<% if (!useTemplateLanguage) { %>
+    '!app/*.html',<% } if (useTemplateLanguage) { %>
+    '!app/*.<%= tplLangExt %>'<% } %>
   ], {
     dot: true
   }).pipe(gulp.dest('dist'));
@@ -94,7 +99,7 @@ gulp.task('extras', function () {
 
 gulp.task('clean', require('del').bind(null, ['.tmp', 'dist']));
 
-gulp.task('serve', ['views', 'styles', 'fonts'], function () {
+gulp.task('serve', [<% if (useTemplateLanguage) { %>'views', <% } %>'styles', 'fonts'], function () {
   browserSync({
     notify: false,
     port: 9000,
@@ -108,15 +113,14 @@ gulp.task('serve', ['views', 'styles', 'fonts'], function () {
   });
 
   // watch for changes
-  gulp.watch([
-    'app/*.html',
-    '.tmp/*.html',
+  gulp.watch([<% if (!useTemplateLanguage) { %>
+    'app/*.html',<% } if (useTemplateLanguage) { %>
+    '.tmp/*.html',<% } %>
     'app/scripts/**/*.js',
     'app/images/**/*',
     '.tmp/fonts/**/*'
-  ]).on('change', reload);
-
-  gulp.watch(['app/*.jade', 'app/layouts/**/*.jade'], ['views', reload]);
+  ]).on('change', reload);<% if (useTemplateLanguage) { %>
+  gulp.watch(['app/data/*.json', 'app/*.<%= tplLangExt %>', 'app/layouts/**/*.<%= tplLangExt %>'], ['views', reload]);<% } %>
   gulp.watch('app/styles/**/*.scss', ['styles']);
   gulp.watch('app/fonts/**/*', ['fonts']);
   gulp.watch('bower.json', ['wiredep', 'fonts']);
@@ -157,17 +161,17 @@ gulp.task('wiredep', function () {
 
   gulp.src('app/styles/*.scss')
     .pipe(wiredep({<% if (includeBootstrap) { %>
-      exclude: ['bootstrap-sass-official'],<% } %>
+      exclude: ['bootstrap-sass'],<% } %>
       ignorePath: /^(\.\.\/)+/
     }))
     .pipe(gulp.dest('app/styles'));
 
-  gulp.src('app/*.jade')
+  <% if (useTemplateLanguage) { %>gulp.src('app/*.<%= tplLangExt %>')
     .pipe(wiredep({<% if (includeBootstrap) { %>
       exclude: ['bootstrap-sass'],<% } %>
       ignorePath: /^(\.\.\/)*\.\./
     }))
-    .pipe(gulp.dest('app'));
+    .pipe(gulp.dest('app'));<% } %>
 });
 
 gulp.task('build', ['jshint', 'html', 'images', 'fonts', 'extras'], function () {
@@ -176,8 +180,31 @@ gulp.task('build', ['jshint', 'html', 'images', 'fonts', 'extras'], function () 
 
 gulp.task('default', ['serve']);
 
-gulp.task('views', function () {
-  return gulp.src(['app/*.jade', '!app/_base.jade'])
-    .pipe($.jade({pretty: true}))
+<% if (useTemplateLanguage) { %>gulp.task('views', function () {
+  var extend = require('extend');
+  var fs = require('fs');
+  var path = require('path');
+
+  return gulp.src(['app/*.<%= tplLangExt %>', '!app/_*.<%= tplLangExt %>'])
+    .pipe($.data(function (file) {
+      var data = {
+        common: JSON.parse(fs.readFileSync('./app/data/_common.json')),
+        dummy: JSON.parse(fs.readFileSync('./app/data/_dummy.json'))
+      };
+      var dataFilePath = './app/data/' + path.basename(file.path, '.<%= tplLangExt %>') + '.json';
+      try {
+        return extend(data, JSON.parse(fs.readFileSync(dataFilePath)));
+      } catch(e) {
+        console.log('A data file specific for this template is missing at: ' + dataFilePath, e);
+        return {};
+      }
+    }))<% if (useJade) { %>
+    .pipe($.jade({
+      pretty: true
+    }))<% } if (useSwig) { %>.pipe($.swig({
+      defaults: {
+        cache: false
+      }
+    }))<% } %>
     .pipe(gulp.dest('.tmp'));
-});
+});<% } %>

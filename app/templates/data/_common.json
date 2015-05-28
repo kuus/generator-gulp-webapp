@@ -1,0 +1,9 @@
+{
+  "appName": "<%= appPrettyName %>",
+  "nav": [
+    {
+      "name": "About",
+      "url": "/about"
+    }
+  ]
+}
