@@ -10,7 +10,7 @@
   <div class="row">
     <div class="col-md-6 col-md-offset-3">
       {% for feature in features %}
-        <h4>{{ feature.title}}</h4>
+        <h4>{{ feature.title }}</h4>
         <p>{{ feature.description }}</p>
       {% endfor %}
     </div>
