@@ -1,4 +1,4 @@
-/* global -$ */
+/* jshint node: true */
 'use strict';
 // generated on <%= (new Date).toISOString().split('T')[0] %> using <%= pkg.name %> <%= pkg.version %>
 
@@ -207,4 +207,23 @@ gulp.task('default', ['serve']);
       }
     }))<% } %>
     .pipe(gulp.dest('.tmp'));
-});<% } %>
+});<% } %><% if (deployFtp) { %>
+
+gulp.task('deploy', function() {
+  var ftp = require('vinyl-ftp');
+  var secrets = require('../secrets.json').ftp;
+  var conn = ftp.create({
+    host: secrets.host,
+    user: secrets.user,
+    password: secrets.password,
+    parallel: 10,
+    log: console.log
+  });
+  return gulp.src('./dist/**', {
+      base: './dist',
+      buffer: false
+    })
+    .pipe(conn.newer('/public_html/<%= appname %>'))
+    .pipe(conn.dest('/public_html/<%= appname %>'));
+});
+<% } %>

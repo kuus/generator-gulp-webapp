@@ -52,6 +52,7 @@
     "main-bower-files": "^2.5.0",
     "opn": "^1.0.1",
     "wiredep": "^2.2.2",
-    "minimist": "^1.1.1"
+    "minimist": "^1.1.1"<% if (deployFtp) { %>,
+    "vinyl-ftp": "~0.4.1"<% } %>
   }
 }
