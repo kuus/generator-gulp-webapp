@@ -1,6 +1,40 @@
-node_modules
+### Project specific
+# ----------------------
 dist
-.tmp
-.sass-cache
+build
+
+### Generic
+# ----------------------
+
+# Private config
+.env.json
+
+# Minified assets
+*.min.js
+*.min.css
+
+# Front-end and packages folders
+node_modules
 bower_components
-test/bower_components
+.sass-cache
+.tmp
+.publish
+composer.lock
+phpdoc-cache*
+
+# OS and other
+.DS_Store
+*.scssc
+.fuse_hidden*
+
+# Logs and temporary files
+logs
+*.log
+*.tmp
+
+# GitEye
+/.project
+
+# Sublime
+*.sublime-project
+*.sublime-workspace

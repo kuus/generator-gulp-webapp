@@ -7,6 +7,7 @@ var $ = require('gulp-load-plugins')();
 var browserSync = require('browser-sync');
 var reload = browserSync.reload;
 var argv = require('minimist')(process.argv.slice(2));
+var PATH_BUILD = 'dist';
 var banner = [
   '/*!',
   ' *<%=" \<%- pkg.config.namePretty %\> v\<%- pkg.version %\> (\<%- pkg.homepage %\>)" %>',
@@ -57,13 +58,13 @@ gulp.task('_html', [<% if (useTemplateLanguage) { %>'views', <% } %>'styles'], f
     .pipe(assets.restore())
     .pipe($.useref())
     .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
-    .pipe(gulp.dest('dist'));
+    .pipe(gulp.dest(PATH_BUILD));
 });
 
 gulp.task('html', ['_html'], function () {
-  return gulp.src(['dist/scripts/main.js', 'dist/styles/main.css'], { base: 'dist' })
+  return gulp.src([PATH_BUILD + '/scripts/main.js', PATH_BUILD + '/styles/main.css'], { base: PATH_BUILD })
     .pipe($.header(banner, { pkg: require('./package.json') }))
-    .pipe(gulp.dest('dist'));
+    .pipe(gulp.dest(PATH_BUILD));
 });
 
 gulp.task('images', function () {
@@ -76,7 +77,7 @@ gulp.task('images', function () {
       svgoPlugins: [{cleanupIDs: false}]
     }))
     .on('error', function(err){ console.log(err); this.end; })))
-    .pipe(gulp.dest('dist/images'));
+    .pipe(gulp.dest(PATH_BUILD + '/images'));
 });
 
 gulp.task('fonts', function () {
@@ -84,7 +85,7 @@ gulp.task('fonts', function () {
     filter: '**/*.{eot,svg,ttf,woff,woff2}'
   }).concat('app/fonts/**/*'))
     .pipe(gulp.dest('.tmp/fonts'))
-    .pipe(gulp.dest('dist/fonts'));
+    .pipe(gulp.dest(PATH_BUILD + '/fonts'));
 });
 
 gulp.task('extras', function () {
@@ -94,10 +95,10 @@ gulp.task('extras', function () {
     '!app/*.<%= tplLangExt %>'<% } %>
   ], {
     dot: true
-  }).pipe(gulp.dest('dist'));
+  }).pipe(gulp.dest(PATH_BUILD));
 });
 
-gulp.task('clean', require('del').bind(null, ['.tmp', 'dist']));
+gulp.task('clean', require('del').bind(null, ['.tmp', PATH_BUILD]));
 
 gulp.task('serve', [<% if (useTemplateLanguage) { %>'views', <% } %>'styles', 'fonts'], function () {
   browserSync({
@@ -132,7 +133,7 @@ gulp.task('serve:dist', function () {
     port: 9000,
     open: (!!argv.o || !!argv.open) || false,
     server: {
-      baseDir: ['dist']
+      baseDir: [PATH_BUILD]
     }
   });
 });
@@ -175,7 +176,7 @@ gulp.task('wiredep', function () {
 });
 
 gulp.task('build', ['jshint', 'html', 'images', 'fonts', 'extras'], function () {
-  return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
+  return gulp.src(PATH_BUILD + '/**/*').pipe($.size({title: 'build', gzip: true}));
 });
 
 gulp.task('default', ['serve']);
@@ -219,8 +220,8 @@ gulp.task('deploy', function() {
     parallel: 10,
     log: console.log
   });
-  return gulp.src('./dist/**', {
-      base: './dist',
+  return gulp.src(PATH_BUILD + '/**', {
+      base: PATH_BUILD,
       buffer: false
     })
     .pipe(conn.newer('/public_html/<%= appname %>'))
