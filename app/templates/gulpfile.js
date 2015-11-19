@@ -18,6 +18,26 @@ var banner = [
   ' */\n'
 ].join('\n');
 
+/**
+ * Clean url of static html files, allowing to write clean url in link tags
+ * @this {String} prePath
+ */
+function cleanUrl (req, res, cb) {
+  var path = require('path');
+  var url = require('url');
+  var fs = require('fs');
+  var prePath = this;
+
+  var uri = url.parse(req.url);
+  if (uri.pathname.length > 1 &&
+      path.extname(uri.pathname) === '' &&
+      fs.existsSync(prePath + uri.pathname + '.html')
+  ) {
+    req.url = uri.pathname + '.html' + (uri.search || '');
+  }
+  cb();
+}
+
 gulp.task('styles', function () {
   return gulp.src('app/styles/*.scss')
     .pipe($.sourcemaps.init())
@@ -109,7 +129,8 @@ gulp.task('serve', [<% if (useTemplateLanguage) { %>'views', <% } %>'styles', 'f
       baseDir: ['.tmp', 'app'],
       routes: {
         '/bower_components': 'bower_components'
-      }
+      },
+      middleware: cleanUrl.bind(<% if (useTemplateLanguage) { %>'.tmp'<% } else { %>'app'<% } %>)
     }
   });
 
@@ -133,7 +154,8 @@ gulp.task('serve:dist', function () {
     port: 9000,
     open: (!!argv.o || !!argv.open) || false,
     server: {
-      baseDir: [PATH_BUILD]
+      baseDir: [PATH_BUILD],
+      middleware: cleanUrl.bind(PATH_BUILD)
     }
   });
 });
@@ -145,7 +167,8 @@ gulp.task('serve:test', function () {
     port: 9000,
     ui: false,
     server: {
-      baseDir: 'test'
+      baseDir: 'test',
+      middleware: cleanUrl.bind('test')
     }
   });
 

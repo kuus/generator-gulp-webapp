@@ -114,6 +114,8 @@ module.exports = yeoman.generators.Base.extend({
       this.appname = changeCase.paramCase(this.appname);
       this.appYear = new Date().getFullYear();
 
+      this.deployFtp = true;
+
       done();
     }.bind(this));
   },
