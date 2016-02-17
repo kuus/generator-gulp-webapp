@@ -33,12 +33,12 @@
     "yeoman-assert": "^2.0.0",
     "yosay": "^1.0.0",
     "change-case": "~2.3.0",
-    "lodash": "~3.6.0"
+    "lodash": "^4.0.0"
   },
   "peerDependencies": {
     "yo": ">=1.0.0",
     "generator-mocha": ">=0.1.0",
-    "gulp": ">=3.5.0"
+    "gulp": ">=3.9.0"
   },
   "devDependencies": {
     "mocha": "*"

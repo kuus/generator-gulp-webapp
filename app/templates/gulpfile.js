@@ -74,10 +74,10 @@ gulp.task('_html', [<% if (useTemplateLanguage) { %>'views', <% } %>'styles'], f
   return gulp.src(['app/*.html', '.tmp/*.html'])
     .pipe(assets)
     .pipe($.if('*.js', $.uglify({ preserveComments: 'some', compress: { drop_console: true } })))
-    .pipe($.if('*.css', $.minifyCss({ compatibility: 'ie8,+units.rem' })))
+    .pipe($.if('*.css', $.cssnano()))
     .pipe(assets.restore())
     .pipe($.useref())
-    .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
+    .pipe($.if('*.html', $.htmlmin({removeComments: true, loose: true, minifyJS: true, minifyCSS: true})))
     .pipe(gulp.dest(PATH_BUILD));
 });
 
