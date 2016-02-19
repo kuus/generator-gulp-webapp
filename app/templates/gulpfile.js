@@ -7,8 +7,10 @@ var $ = require('gulp-load-plugins')();
 var browserSync = require('browser-sync');
 var reload = browserSync.reload;
 var argv = require('minimist')(process.argv.slice(2));
+var pkg = require('./package.json');
 var PATH_BUILD = 'dist';
-var banner = [
+var IS_DIST = !!argv.dist || !!argv.d;
+var bannerTpl = [
   '/*!',
   ' *<%=" \<%- pkg.config.namePretty %\> v\<%- pkg.version %\> (\<%- pkg.homepage %\>)" %>',
   ' *<%=" \<%- pkg.description %\>" %>',
@@ -17,6 +19,7 @@ var banner = [
   ' *<%=" \<%- pkg.license.type %\> \<%- pkg.config.startYear %\>\<% if (new Date().getFullYear() > pkg.config.startYear) { %\>-\<%- new Date().getFullYear() %\>\<% } %\>\<% if (pkg.license.url) { %\> (\<%- pkg.license.url %\>)\<% } %\>" %>',
   ' */\n'
 ].join('\n');
+var banner = IS_DIST ? require('lodash.template')(bannerTpl)({ pkg: pkg }) : '';
 
 /**
  * Clean url of static html files, allowing to write clean url in link tags
@@ -49,6 +52,13 @@ gulp.task('styles', function () {
     .pipe($.postcss([
       require('autoprefixer-core')({browsers: ['last 2 versions', 'ie 8']})
     ]))
+    .pipe($.if(IS_DIST, $.base64({
+      extensions: ['svg', 'png', /\.jpg#datauri$/i],
+      // baseDir: 'public',
+      // exclude:    [/\.server\.(com|net)\/dynamic\//, '--live.jpg'],
+      // maxImageSize: 8*1024, // bytes
+      debug: true
+    })))
     .pipe($.combineMediaQueries()) // { log: true }
     .pipe($.sourcemaps.write())
     .pipe(gulp.dest('.tmp/styles'))
@@ -69,14 +79,10 @@ gulp.task('jshint', jshint('app/scripts/**/*.js'));
 gulp.task('jshint:test', jshint('test/spec/**/*.js'));
 
 gulp.task('_html', [<% if (useTemplateLanguage) { %>'views', <% } %>'styles'], function () {
-  var assets = $.useref.assets({searchPath: ['.tmp', 'app', '.']});
-
   return gulp.src(['app/*.html', '.tmp/*.html'])
-    .pipe(assets)
+    .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))
     .pipe($.if('*.js', $.uglify({ preserveComments: 'some', compress: { drop_console: true } })))
     .pipe($.if('*.css', $.cssnano()))
-    .pipe(assets.restore())
-    .pipe($.useref())
     .pipe($.if('*.html', $.htmlmin({removeComments: true, loose: true, minifyJS: true, minifyCSS: true})))
     .pipe(gulp.dest(PATH_BUILD));
 });
@@ -230,6 +236,7 @@ gulp.task('default', ['serve']);
         cache: false
       }
     }))<% } %>
+    .pipe($.if(IS_DIST, $.prettify({indent_size: 2})))
     .pipe(gulp.dest('.tmp'));
 });<% } %><% if (deployFtp) { %>
 
