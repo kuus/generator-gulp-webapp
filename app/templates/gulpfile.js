@@ -4,22 +4,24 @@
 
 var gulp = require('gulp');
 var $ = require('gulp-load-plugins')();
+var lazypipe = require('lazypipe');
 var browserSync = require('browser-sync');
 var reload = browserSync.reload;
 var argv = require('minimist')(process.argv.slice(2));
 var pkg = require('./package.json');
 var PATH_BUILD = 'dist';
 var IS_DIST = !!argv.dist || !!argv.d;
-var bannerTpl = [
-  '/*!',
+var UNCSS = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf('uncss') !== -1 : false;
+var MINIFY_HTML = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf('htmlmin') !== -1 : false;
+var banner = require('lodash.template')([
+  '\n/*!',
   ' *<%=" \<%- pkg.config.namePretty %\> v\<%- pkg.version %\> (\<%- pkg.homepage %\>)" %>',
   ' *<%=" \<%- pkg.description %\>" %>',
   ' *',
   ' *<%=" by \<%- pkg.author.name %\> <\<%- pkg.author.email %\>> (\<%- pkg.author.url %\>)" %>',
   ' *<%=" \<%- pkg.license.type %\> \<%- pkg.config.startYear %\>\<% if (new Date().getFullYear() > pkg.config.startYear) { %\>-\<%- new Date().getFullYear() %\>\<% } %\>\<% if (pkg.license.url) { %\> (\<%- pkg.license.url %\>)\<% } %\>" %>',
   ' */\n'
-].join('\n');
-var banner = IS_DIST ? require('lodash.template')(bannerTpl)({ pkg: pkg }) : '';
+].join('\n'))({ pkg: pkg });
 
 /**
  * Clean url of static html files, allowing to write clean url in link tags
@@ -54,7 +56,6 @@ gulp.task('styles', function () {
     ]))
     .pipe($.if(IS_DIST, $.base64({
       extensions: ['svg', 'png', /\.jpg#datauri$/i],
-      // baseDir: 'public',
       // exclude:    [/\.server\.(com|net)\/dynamic\//, '--live.jpg'],
       // maxImageSize: 8*1024, // bytes
       debug: true
@@ -65,7 +66,7 @@ gulp.task('styles', function () {
     .pipe(reload({stream: true}));
 });
 
-function jshint(files) {
+function jshint (files) {
   return function () {
     return gulp.src(files)
       .pipe(reload({stream: true, once: true}))
@@ -78,18 +79,31 @@ function jshint(files) {
 gulp.task('jshint', jshint('app/scripts/**/*.js'));
 gulp.task('jshint:test', jshint('test/spec/**/*.js'));
 
-gulp.task('_html', [<% if (useTemplateLanguage) { %>'views', <% } %>'styles'], function () {
+var cssOptimization = lazypipe()
+  .pipe(function () {
+    return $.if(UNCSS, $.uncss({
+      html: ['app/*.html', '.tmp/*.html'],
+      ignoreSheets: '/bower_components/g'
+    }));
+  })
+  .pipe($.cssnano)
+  .pipe($.replace, '/*! @license credits */', banner);
+
+var jsOptimization = lazypipe()
+  .pipe($.uglify, { preserveComments: 'some', compress: { drop_console: true } })
+  .pipe($.replace, '/*! @license credits */', banner);
+
+var htmlOptimization = lazypipe()
+  .pipe(function () {
+    return $.if(MINIFY_HTML, $.htmlmin({ removeComments: true, loose: true, minifyJS: true, minifyCSS: true, collapseWhitespace: true }), $.prettify({ indent_size: 2, extra_liners: [] }));
+  });
+
+gulp.task('html', [<% if (useTemplateLanguage) { %>'views', <% } %>'styles'], function () {
   return gulp.src(['app/*.html', '.tmp/*.html'])
     .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))
-    .pipe($.if('*.js', $.uglify({ preserveComments: 'some', compress: { drop_console: true } })))
-    .pipe($.if('*.css', $.cssnano()))
-    .pipe($.if('*.html', $.htmlmin({removeComments: true, loose: true, minifyJS: true, minifyCSS: true})))
-    .pipe(gulp.dest(PATH_BUILD));
-});
-
-gulp.task('html', ['_html'], function () {
-  return gulp.src([PATH_BUILD + '/scripts/main.js', PATH_BUILD + '/styles/main.css'], { base: PATH_BUILD })
-    .pipe($.header(banner, { pkg: require('./package.json') }))
+    .pipe($.if('*.css', cssOptimization()))
+    .pipe($.if('*.js', jsOptimization()))
+    .pipe($.if('*.html', htmlOptimization()))
     .pipe(gulp.dest(PATH_BUILD));
 });
 
@@ -102,14 +116,14 @@ gulp.task('images', function () {
       // as hooks for embedding and styling
       svgoPlugins: [{cleanupIDs: false}]
     }))
-    .on('error', function(err){ console.log(err); this.end; })))
+    .on('error', function (err) { $.util.log($.util.colors.magenta(err)); this.end; })))
     .pipe(gulp.dest(PATH_BUILD + '/images'));
 });
 
 gulp.task('fonts', function () {
   return gulp.src(require('main-bower-files')({
     filter: '**/*.{eot,svg,ttf,woff,woff2}'
-  }).concat('app/fonts/**/*'))
+  }).concat('app/fonts/*.*'))
     .pipe(gulp.dest('.tmp/fonts'))
     .pipe(gulp.dest(PATH_BUILD + '/fonts'));
 });
@@ -146,11 +160,11 @@ gulp.task('serve', [<% if (useTemplateLanguage) { %>'views', <% } %>'styles', 'f
     '.tmp/*.html',<% } %>
     'app/scripts/**/*.js',
     'app/images/**/*',
-    '.tmp/fonts/**/*'
+    '.tmp/fonts/*.*'
   ]).on('change', reload);<% if (useTemplateLanguage) { %>
   gulp.watch(['app/data/*.json', 'app/*.<%= tplLangExt %>', 'app/layouts/**/*.<%= tplLangExt %>'], ['views', reload]);<% } %>
   gulp.watch('app/styles/**/*.scss', ['styles']);
-  gulp.watch('app/fonts/**/*', ['fonts']);
+  gulp.watch('app/fonts/*.*', ['fonts']);
   gulp.watch('bower.json', ['wiredep', 'fonts']);
 });
 
@@ -204,6 +218,7 @@ gulp.task('wiredep', function () {
     .pipe(gulp.dest('app'));<% } %>
 });
 
+// an example of build task: `$ gulp build --dist htmlmin,uncss`
 gulp.task('build', ['jshint', 'html', 'images', 'fonts', 'extras'], function () {
   return gulp.src(PATH_BUILD + '/**/*').pipe($.size({title: 'build', gzip: true}));
 });
@@ -225,7 +240,7 @@ gulp.task('default', ['serve']);
       try {
         return extend(data, JSON.parse(fs.readFileSync(dataFilePath)));
       } catch(e) {
-        console.log('A data file specific for this template is missing at: ' + dataFilePath, e);
+        $.util.log('A data file specific for this template is missing at: ' + dataFilePath, $.util.colors.yellow);
         return {};
       }
     }))<% if (useJade) { %>
@@ -236,25 +251,28 @@ gulp.task('default', ['serve']);
         cache: false
       }
     }))<% } %>
-    .pipe($.if(IS_DIST, $.prettify({indent_size: 2})))
     .pipe(gulp.dest('.tmp'));
-});<% } %><% if (deployFtp) { %>
+});<% } %><% if (deploy) { %>
 
 gulp.task('deploy', function() {
-  var ftp = require('vinyl-ftp');
-  var secrets = require('../secrets.json').ftp;
+  var secrets = require('../secrets.json');<% if (deploy === 'ftp') { %>var ftp = require('vinyl-ftp');
   var conn = ftp.create({
-    host: secrets.host,
-    user: secrets.user,
-    password: secrets.password,
+    host: secrets.ftp.host,
+    user: secrets.ftp.user,
+    password: secrets.ftp.password,
     parallel: 10,
-    log: console.log
-  });
+    log: $.util.log
+  });<% } %>
   return gulp.src(PATH_BUILD + '/**', {
       base: PATH_BUILD,
       buffer: false
-    })
+    })<% if (deploy === 'sftp') { %>.pipe($.sftp({
+      host: secrets.ftp.host,
+      user: secrets.ftp.user,
+      passphrase: secrets.ssh.passphrase,
+      remotePath: secrets.ftp.publicPath + '/<%= appname %>/'
+    }));<% } else if (deploy === 'ftp') { %>
     .pipe(conn.newer('/public_html/<%= appname %>'))
-    .pipe(conn.dest('/public_html/<%= appname %>'));
+    .pipe(conn.dest('/public_html/<%= appname %>'));<% } %>
 });
 <% } %>

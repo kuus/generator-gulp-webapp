@@ -81,6 +81,23 @@ module.exports = yeoman.generators.Base.extend({
         value: 'none',
         checked: false
       }]
+    }, {
+      type: 'list',
+      name: 'deploy',
+      message: 'You want a gulp deploy task, which connection type?',
+      choices: [{
+        name: 'SFTP',
+        value: 'sftp',
+        checked: true
+      }, {
+        name: 'FTP',
+        value: 'ftp',
+        checked: false
+      }, {
+        name: 'None',
+        value: 'none',
+        checked: false
+      }]
     }];
 
     this.prompt(prompts, function (answers) {
@@ -113,8 +130,6 @@ module.exports = yeoman.generators.Base.extend({
       this.appShortName = toShortName(changeCase.snakeCase(this.appname));
       this.appname = changeCase.paramCase(this.appname);
       this.appYear = new Date().getFullYear();
-
-      this.deployFtp = true;
 
       done();
     }.bind(this));
