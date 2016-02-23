@@ -25,7 +25,7 @@ If you had something different in mind, modify paths accordingly.
 
 Install [gulp-nunjucks-render](https://github.com/carlosl/gulp-nunjucks-render) to render Nunjucks template language to HTML:
 
-```sh
+```
 $ npm install --save-dev gulp-nunjucks-render
 ```
 
@@ -48,7 +48,7 @@ Modify `app/index.html`:
 
 Make it the default layout template:
 
-```sh
+```
 $ mv app/index.html app/layouts/default.html
 ```
 
@@ -76,8 +76,8 @@ Create `app/index.html`:
 ### 4. Create a `views` task
 
 ```js
-gulp.task('views', function () {
-  $.nunjucksRender.nunjucks.configure(['app/']);
+gulp.task('views', () => {
+  $.nunjucksRender.nunjucks.configure(['app/'], {watch: false});
 
   return gulp.src('app/*.html')
     .pipe($.nunjucksRender())
@@ -90,26 +90,26 @@ This compiles `app/*.html` files into static `.html` files in the `.tmp` directo
 ### 5. Add `views` as a dependency of both `html` and `serve`
 
 ```js
-gulp.task('html', ['views', 'styles'], function () {
+gulp.task('html', ['views', 'styles'], () => {
     ...
 ```
 
 ```js
-gulp.task('serve', ['views', 'styles', 'fonts'], function () {
+gulp.task('serve', ['views', 'styles', 'fonts'], () => {
   ...
 ```
 
 ### 6. Configure `html` task to include files from `.tmp`
 
 ```diff
- gulp.task('html', ['styles', 'views'], function () {
-   var assets = $.useref.assets({searchPath: ['.tmp', 'app', '.']});
+ gulp.task('html', ['styles', 'views'], () => {
+   const assets = $.useref.assets({searchPath: ['.tmp', 'app', '.']});
 
 -  return gulp.src('app/*.html')
 +  return gulp.src(['app/*.html', '.tmp/*.html'])
      .pipe(assets)
      .pipe($.if('*.js', $.uglify()))
-     .pipe($.if('*.css', $.csso()))
+     .pipe($.if('*.css', $.minifyCss({compatibility: 'ie8'})))
      .pipe(assets.restore())
      .pipe($.useref())
      .pipe(gulp.dest('dist'));
@@ -119,7 +119,7 @@ gulp.task('serve', ['views', 'styles', 'fonts'], function () {
 ### 7. Configure `wiredep` task to wire Bower components on layout templates only
 
 ```diff
-  gulp.task('wiredep', function () {
+  gulp.task('wiredep', () => {
     ...
 -   gulp.src('app/*.html')
 +   gulp.src('app/layouts/*.html')
@@ -138,7 +138,7 @@ gulp.task('serve', ['views', 'styles', 'fonts'], function () {
 Edit your `serve` task so that (a) editing an `app/**/*.html` file triggers the `views` task, and (b) reloads the browser:
 
 ```diff
-  gulp.task('serve', ['views', 'styles', 'fonts'], function () {
+  gulp.task('serve', ['views', 'styles', 'fonts'], () => {
     ...
     gulp.watch([
 -     'app/*.html',

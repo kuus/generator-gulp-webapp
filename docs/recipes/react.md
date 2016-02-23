@@ -6,21 +6,21 @@ This recipe gets you set up with React, including precompilation of JSX into Jav
 
 ### 1. Add dependencies
 
-Install [gulp-react](https://github.com/sindresorhus/gulp-react), a gulp plugin for transforming JSX templates into real JavaScript:
+Install [gulp-babel](https://github.com/babel/gulp-babel), and the required presets for transforming JSX templates into vanilla JavaScript:
 
-```sh
-$ npm install --save-dev gulp-react
+```
+$ npm install --save-dev gulp-babel babel-preset-es2015 babel-preset-react
 ```
 
 Install [React](https://github.com/facebook/react) itself as a Bower component:
 
-```sh
+```
 $ bower install --save react
 ```
 
 Run the wiredep task to insert a script tag into your `app/index.html`:
 
-```sh
+```
 $ gulp wiredep
 ```
 
@@ -29,9 +29,13 @@ $ gulp wiredep
 This task preprocesses `.jsx` files into pure JavaScript and outputs them in `.tmp/scripts`.
 
 ```js
-gulp.task('templates', function () {
+gulp.task('templates', () => {
   return gulp.src('app/scripts/**/*.jsx')
-    .pipe($.react())
+    .pipe($.sourcemaps.init())
+    .pipe($.babel({
+      presets: ['es2015','react']
+    }))
+    .pipe($.sourcemaps.write())
     .pipe(gulp.dest('.tmp/scripts'));
 });
 ```
@@ -39,12 +43,12 @@ gulp.task('templates', function () {
 ### 3. Add `templates` as a dependency of `html` and `serve`
 
 ```js
-gulp.task('html', ['styles', 'templates'], function () {
+gulp.task('html', ['styles', 'templates'], () => {
   ...
 ```
 
 ```js
-gulp.task('serve', ['styles', 'templates', 'fonts'], function () {
+gulp.task('serve', ['styles', 'templates', 'fonts'], () => {
   ...
 ```
 
@@ -56,7 +60,7 @@ gulp.task('serve', ['styles', 'templates', 'fonts'], function () {
 Edit your `serve` task so that (a) editing a `.jsx` file triggers the `templates` task, and (b) the browser is refreshed whenever a `.js` file is generated in `.tmp/scripts`:
 
 ```diff
- gulp.task('serve', ['styles', 'templates', 'fonts'], function () {
+ gulp.task('serve', ['styles', 'templates', 'fonts'], () => {
    ...
    gulp.watch([
      'app/*.html',

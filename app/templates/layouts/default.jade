@@ -6,8 +6,14 @@ block body
     include partials/header
 
   .container
-    | <!--[if lt IE 8]>
-    |   <p class="alert alert-warning">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    | <!--[if lt IE 10]>
+<% if (includeBootstrap) { -%>
+      .alert.alert-warning.browserupgrade
+        p You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+      </div>
+<% } else { -%>
+      p.browserupgrade You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+<% } -%>
     | <![endif]-->
     block content
 

@@ -5,12 +5,13 @@ Options:
     Sass: Include Sass
     Bootstrap: Include Bootstrap or Bootstrap Sass if Sass is included
     Modernizr: Include Modernizr
+    Babel: Use ES2015 features by using Babel
 
 Example:
-    yo gulp-webapp
+    yo webapp
 
     This will create:
-        gulpfile.js: Configuration for the task runner.
+        gulpfile.babel.js: Configuration for the task runner.
         bower.json: Front-end packages installed by bower.
         package.json: Development packages installed by npm.
 

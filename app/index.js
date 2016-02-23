@@ -1,16 +1,27 @@
 'use strict';
-var fs = require('fs');
-var path = require('path');
-var yeoman = require('yeoman-generator');
+var generators = require('yeoman-generator');
 var yosay = require('yosay');
 var chalk = require('chalk');
 var wiredep = require('wiredep');
-var lodash = require('lodash');
 var changeCase = require('change-case');
+var mkdirp = require('mkdirp');
+var gulpReplace = require('gulp-replace');
 
-module.exports = yeoman.generators.Base.extend({
+module.exports = generators.Base.extend({
   constructor: function () {
-    yeoman.generators.Base.apply(this, arguments);
+    var testLocal;
+
+    generators.Base.apply(this, arguments);
+
+    this.option('skip-welcome-message', {
+      desc: 'Skips the welcome message',
+      type: Boolean
+    });
+
+    this.option('skip-install-message', {
+      desc: 'Skips the message after the installation of dependencies',
+      type: Boolean
+    });
 
     this.option('test-framework', {
       desc: 'Test framework to be invoked',
@@ -18,19 +29,24 @@ module.exports = yeoman.generators.Base.extend({
       defaults: 'mocha'
     });
 
-    this.option('skip-welcome-message', {
-      desc: 'Skips the welcome message',
-      type: Boolean
+    this.option('babel', {
+      desc: 'Use Babel',
+      type: Boolean,
+      defaults: true
     });
 
-    this.option('skip-install', {
-      desc: 'Skips the installation of dependencies',
-      type: Boolean
-    });
+    if (this.options['test-framework'] === 'mocha') {
+      testLocal = require.resolve('generator-mocha/generators/app/index.js');
+    } else if (this.options['test-framework'] === 'jasmine') {
+      testLocal = require.resolve('generator-jasmine/generators/app/index.js');
+    }
 
-    this.option('skip-install-message', {
-      desc: 'Skips the message after the installation of dependencies',
-      type: Boolean
+    this.composeWith(this.options['test-framework'] + ':app', {
+      options: {
+        'skip-install': this.options['skip-install']
+      }
+    }, {
+      local: testLocal
     });
   },
 
@@ -43,7 +59,7 @@ module.exports = yeoman.generators.Base.extend({
     var done = this.async();
 
     if (!this.options['skip-welcome-message']) {
-      this.log(yosay('\'Allo \'allo! Out of the box I include HTML5 Boilerplate, jQuery, and a gulpfile.js to build your app.'));
+      this.log(yosay('\'Allo \'allo! Out of the box I include HTML5 Boilerplate, jQuery, and a gulpfile to build your app.'));
     }
 
     var prompts = [{
@@ -78,7 +94,7 @@ module.exports = yeoman.generators.Base.extend({
         checked: false
       }, {
         name: 'None',
-        value: 'none',
+        value: 'html',
         checked: false
       }]
     }, {
@@ -98,161 +114,281 @@ module.exports = yeoman.generators.Base.extend({
         value: 'none',
         checked: false
       }]
+    }, {
+      type: 'confirm',
+      name: 'includeJQuery',
+      message: 'Would you like to include jQuery?',
+      default: true,
+      when: function (answers) {
+        return answers.features.indexOf('includeBootstrap') === -1;
+      }
     }];
 
     this.prompt(prompts, function (answers) {
       var features = answers.features;
 
-      var hasFeature = function (feat) {
-        return features.indexOf(feat) !== -1;
-      };
+      function hasFeature(feat) {
+        return features && features.indexOf(feat) !== -1;
+      }
 
-      var toShortName = function (string) {
+      function toShortName (string) {
         var splitted = string.split(' ');
         var shortname = '';
         splitted.forEach(function (word) {
           shortname += word.substr(0, 2);
         });
         return shortname;
-      };
+      }
 
       // manually deal with the response, get back and store the results.
       // we change a bit this way of doing to automatically do this in the self.prompt() method.
-      this.includeBootstrap = hasFeature('includeBootstrap');
-      this.includeModernizr = hasFeature('includeModernizr');
+      var appname = changeCase.paramCase(this.appname);
 
-      this.useTemplateLanguage = answers.templating !== '';
-      this.tplLangExt = this.useTemplateLanguage ? answers.templating : 'html';
-      this.useJade = answers.templating === 'jade';
-      this.useSwig = answers.templating === 'swig';
-
-      this.appPrettyName = changeCase.titleCase(this.appname);
-      this.appShortName = toShortName(changeCase.snakeCase(this.appname));
-      this.appname = changeCase.paramCase(this.appname);
-      this.appYear = new Date().getFullYear();
+      this.app = {
+        includeSass: true, // no prompt for this
+        includeBootstrap: hasFeature('includeBootstrap'),
+        includeModernizr: hasFeature('includeModernizr'),
+        includeJQuery: answers.includeJQuery,
+        useTemplateLanguage: answers.templating !== 'html',
+        tplLangExt: answers.templating,
+        useJade: answers.templating === 'jade',
+        useSwig: answers.templating === 'swig',
+        deploy: answers.deploy,
+        name: appname,
+        prettyName: changeCase.titleCase(appname),
+        shortName: toShortName(changeCase.snakeCase(appname)),
+        year: new Date().getFullYear(),
+        generatedOn: new Date().toISOString().split('T')[0],
+        generatorName: this.pkg.name,
+        generatorVersion: this.pkg.version,
+        includeBabel: this.options['babel'],
+        testFramework: this.options['test-framework']
+      };
 
       done();
     }.bind(this));
   },
 
   writing: {
-    packageJSON: function () {
-      this.template('_package.json', 'package.json');
-    },
 
     gulpfile: function () {
-      this.template('gulpfile.js');
+      this.registerTransformStream(gulpReplace(/<@%/g, '<%'));
+      this.registerTransformStream(gulpReplace(/%@>/g, '%>'));
+
+      this.fs.copyTpl(
+        this.templatePath('gulpfile.js'), // 'gulpfile.babel.js'
+        this.destinationPath('gulpfile.js'), // 'gulpfile.babel.js'
+        this.app
+      );
+    },
+
+    packageJSON: function () {
+      this.fs.copyTpl(
+        this.templatePath('_package.json'),
+        this.destinationPath('package.json'),
+        this.app
+      );
+    },
+
+    babel: function () {
+      this.fs.copy(
+        this.templatePath('babelrc'),
+        this.destinationPath('.babelrc')
+      );
     },
 
     git: function () {
-      this.copy('gitignore', '.gitignore');
-      this.copy('gitattributes', '.gitattributes');
+      this.fs.copy(
+        this.templatePath('gitignore'),
+        this.destinationPath('.gitignore'));
+
+      this.fs.copy(
+        this.templatePath('gitattributes'),
+        this.destinationPath('.gitattributes'));
     },
 
     bower: function () {
-      var bower = {
-        name: this.appname,
+      var bowerJson = {
+        name: this.app.name,
         private: true,
         dependencies: {}
       };
 
-      if (this.includeBootstrap) {
-        var bs = 'bootstrap-sass';
-        bower.dependencies[bs] = '~3.3.1';
-      } else {
-        bower.dependencies.jquery = '~2.1.1';
+      if (this.app.includeBootstrap) {
+        if (this.app.includeSass) {
+          bowerJson.dependencies['bootstrap-sass'] = '~3.3.5';
+          bowerJson.overrides = {
+            'bootstrap-sass': {
+              'main': [
+                'assets/stylesheets/_bootstrap.scss',
+                'assets/fonts/bootstrap/*',
+                'assets/javascripts/bootstrap.js'
+              ]
+            }
+          };
+        } else {
+          bowerJson.dependencies['bootstrap'] = '~3.3.5';
+          bowerJson.overrides = {
+            'bootstrap': {
+              'main': [
+                'less/bootstrap.less',
+                'dist/css/bootstrap.css',
+                'dist/js/bootstrap.js',
+                'dist/fonts/*'
+              ]
+            }
+          };
+        }
+      } else if (this.app.includeJQuery) {
+        bowerJson.dependencies['jquery'] = '~2.1.1';
       }
 
-      if (this.includeModernizr) {
-        bower.dependencies.modernizr = '~2.8.1';
-      }
-
-      this.copy('bowerrc', '.bowerrc');
-      this.write('bower.json', JSON.stringify(bower, null, 2));
-    },
-
-    jshint: function () {
-      this.copy('jshintrc', '.jshintrc');
+      this.fs.writeJSON('bower.json', bowerJson);
+      this.fs.copy(
+        this.templatePath('bowerrc'),
+        this.destinationPath('.bowerrc')
+      );
     },
 
     editorConfig: function () {
-      this.copy('editorconfig', '.editorconfig');
+      this.fs.copy(
+        this.templatePath('editorconfig'),
+        this.destinationPath('.editorconfig')
+      );
     },
 
     h5bp: function () {
-      this.copy('favicon.ico', 'app/favicon.ico');
-      this.copy('apple-touch-icon.png', 'app/apple-touch-icon.png');
-      this.copy('robots.txt', 'app/robots.txt');
+      this.fs.copy(
+        this.templatePath('favicon.ico'),
+        this.destinationPath('app/favicon.ico')
+      );
+
+      this.fs.copy(
+        this.templatePath('apple-touch-icon.png'),
+        this.destinationPath('app/apple-touch-icon.png')
+      );
+
+      this.fs.copy(
+        this.templatePath('robots.txt'),
+        this.destinationPath('app/robots.txt'));
     },
 
-    mainStylesheet: function () {
-      this.copy('main.scss', 'app/styles/main.scss');
-    },
+    styles: function () {
+      var css = 'main';
 
-    writeIndex: function () {
-      var indexFileName = this.useTemplateLanguage ? '_base' : 'index';
-      indexFileName += '.' + this.tplLangExt;
-      this.indexFile = this.src.read(indexFileName);
-      this.indexFile = this.engine(this.indexFile, this);
-
-      // wire Bootstrap plugins
-      if (this.includeBootstrap) {
-        var bs = '/bower_components/bootstrap-sass/assets/javascripts/bootstrap/';
-
-        this.indexFile = this.appendScripts(this.indexFile, 'scripts/plugins.js', [
-          bs + 'affix.js',
-          bs + 'alert.js',
-          bs + 'dropdown.js',
-          bs + 'tooltip.js',
-          bs + 'modal.js',
-          bs + 'transition.js',
-          bs + 'button.js',
-          bs + 'popover.js',
-          bs + 'carousel.js',
-          bs + 'scrollspy.js',
-          bs + 'collapse.js',
-          bs + 'tab.js'
-        ]);
+      if (this.app.includeSass) {
+        css += '.scss';
+      } else {
+        css += '.css';
       }
 
-      this.indexFile = this.appendFiles({
-        html: this.indexFile,
-        fileType: 'js',
-        optimizedPath: 'scripts/main.js',
-        sourceFileList: ['scripts/main.js']
-      });
-
-      this.write('app/' + indexFileName, this.indexFile);
+      this.fs.copyTpl(
+        this.templatePath(css),
+        this.destinationPath('app/styles/' + css),
+        this.app
+      );
     },
 
-    app: function () {
-      var ext = this.tplLangExt;
-
-      this.mkdir('app');
-      this.mkdir('app/scripts');
-      this.mkdir('app/styles');
-      this.mkdir('app/images');
-      this.mkdir('app/fonts');
-      this.copy('main.js', 'app/scripts/main.js');
-      this.copy('index.' + ext, 'app/index.' + ext);
-
-      if (this.useTemplateLanguage) {
-        this.copy('_base.' + ext, 'app/_base.' + ext);
-        this.mkdir('app/layouts');
-        this.mkdir('app/layouts/partials');
-        this.copy('layouts/default.' + ext, 'app/layouts/default.' + ext);
-        this.copy('layouts/partials/header.' + ext, 'app/layouts/partials/header.' + ext);
-        this.copy('layouts/partials/footer.' + ext, 'app/layouts/partials/footer.' + ext);
-
-        this.mkdir('app/data');
-        this.template('data/_common.json', 'app/data/_common.json');
-        this.template('data/_dummy.json', 'app/data/_dummy.json');
-        this.template('data/index.json', 'app/data/index.json');
+    scripts: function () {
+      if (this.app.includeModernizr) {
+        this.fs.copy(
+          this.templatePath('modernizr.json'),
+          this.destinationPath('app/scripts/modernizr.json')
+        );
       }
+      this.fs.copy(
+        this.templatePath('main.js'),
+        this.destinationPath('app/scripts/main.js')
+      );
+    },
+
+    html: function () {
+      var ext = this.app.tplLangExt;
+
+      // path prefix for Bootstrap JS files
+      if (this.app.includeBootstrap) {
+        this.app.bsPath = '/bower_components/';
+        this.app.bsPlugins = [
+          'affix',
+          'alert',
+          'dropdown',
+          'tooltip',
+          'modal',
+          'transition',
+          'button',
+          'popover',
+          'carousel',
+          'scrollspy',
+          'collapse',
+          'tab'
+        ];
+
+        if (this.app.includeSass) {
+          this.app.bsPath += 'bootstrap-sass/assets/javascripts/bootstrap/';
+        } else {
+          this.app.bsPath += 'bootstrap/js/';
+        }
+      }
+
+      if (this.app.useTemplateLanguage) {
+        this.fs.copyTpl(
+          this.templatePath('_base.' + ext),
+          this.destinationPath('app/_base.' + ext),
+          this.app
+        );
+        this.fs.copyTpl(
+          this.templatePath('layouts/default.' + ext),
+          this.destinationPath('app/layouts/default.' + ext),
+          this.app
+        );
+        this.fs.copyTpl(
+          this.templatePath('layouts/partials/header.' + ext),
+          this.destinationPath('app/layouts/partials/header.' + ext),
+          this.app
+        );
+        this.fs.copyTpl(
+          this.templatePath('layouts/partials/footer.' + ext),
+          this.destinationPath('app/layouts/partials/footer.' + ext),
+          this.app
+        );
+        this.fs.copy(
+          this.templatePath('data/_dummy.json'),
+          this.destinationPath('app/data/_dummy.json')
+        );
+        this.fs.copyTpl(
+          this.templatePath('data/_common.json'),
+          this.destinationPath('app/data/_common.json'),
+          this.app
+        );
+        this.fs.copyTpl(
+          this.templatePath('data/index.json'),
+          'app/data/index.json',
+          this.app
+        );
+      }
+
+      this.fs.copyTpl(
+        this.templatePath('index.' + ext),
+        this.destinationPath('app/index.' + ext),
+        this.app
+      );
+    },
+
+    misc: function () {
+      mkdirp('app/images');
+      mkdirp('app/fonts');
     }
   },
 
   install: function () {
+    this.installDependencies({
+      skipMessage: this.options['skip-install-message'],
+      skipInstall: this.options['skip-install']
+    });
+  },
+
+  end: function () {
+    var bowerJson = this.fs.readJSON(this.destinationPath('bower.json'));
     var howToInstall =
       '\nAfter running ' +
       chalk.yellow.bold('npm install & bower install') +
@@ -260,40 +396,30 @@ module.exports = yeoman.generators.Base.extend({
       '\nfront end dependencies by running ' +
       chalk.yellow.bold('gulp wiredep') +
       '.';
+    var indexFileName = this.app.useTemplateLanguage ? '_base.' + this.app.tplLangExt : 'index.html';
 
     if (this.options['skip-install']) {
       this.log(howToInstall);
       return;
     }
 
-    this.installDependencies({
-      skipMessage: this.options['skip-install-message'],
-      skipInstall: this.options['skip-install']
+    // wire Bower packages to .html
+    wiredep({
+      bowerJson: bowerJson,
+      directory: 'bower_components',
+      exclude: ['bootstrap-sass', 'bootstrap.js'],
+      ignorePath: /^(\.\.\/)*\.\./,
+      src: 'app/' + indexFileName
     });
 
-    this.on('end', function () {
-      var bowerJson = this.dest.readJSON('bower.json');
-      var indexFileName = this.useTemplateLanguage ? '_base' : 'index';
-      indexFileName += '.' + this.tplLangExt;
-
-      // wire Bower packages to .html
+    if (this.app.includeSass) {
+      // wire Bower packages to .scss
       wiredep({
         bowerJson: bowerJson,
         directory: 'bower_components',
-        exclude: ['bootstrap-sass', 'bootstrap.js'],
-        ignorePath: /^(\.\.\/)*\.\./,
-        src: 'app/' + indexFileName
+        ignorePath: /^(\.\.\/)+/,
+        src: 'app/styles/*.scss'
       });
-
-      // ideally we should use composeWith, but we're invoking it here
-      // because generator-mocha is changing the working directory
-      // https://github.com/yeoman/generator-mocha/issues/28
-      this.invoke(this.options['test-framework'], {
-        options: {
-          'skip-message': this.options['skip-install-message'],
-          'skip-install': this.options['skip-install']
-        }
-      });
-    }.bind(this));
+    }
   }
 });

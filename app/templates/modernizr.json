@@ -1,0 +1,21 @@
+{
+  "crawl": false,
+  "customTests": [],
+  "tests": [
+    "svg",
+    "touchevents",
+    "flexbox",
+    "csspointerevents",
+    "csspositionsticky",
+    "cssremunit",
+    "csstransforms",
+    "csstransforms3d",
+    "cssvwunit",
+    "inlinesvg"
+  ],
+  "options": [
+    "mq",
+    "setClasses"
+  ],
+  "uglify": true
+}

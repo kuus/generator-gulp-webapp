@@ -4,7 +4,8 @@
     <meta charset="utf-8">
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><%= appPrettyName %></title>
+    <meta name="author" content="kuus <kunderikuus@gmail.com> (http://kunderikuus.net)">
+    <title><%= prettyName %></title>
 
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <!-- Place favicon.ico in the root directory -->
@@ -17,14 +18,14 @@
     <!-- build:css styles/main.css -->
     <link rel="stylesheet" href="styles/main.css">
     <!-- endbuild -->
-    <% if (includeModernizr) { %>
-    <!-- build:js scripts/vendor/modernizr.js -->
-    <script src="/bower_components/modernizr/modernizr.js"></script>
-    <!-- endbuild --><% } %>
   </head>
   <body>
     <!--[if lt IE 10]>
+<% if (includeBootstrap) { -%>
+      <div class="alert alert-warning browserupgrade"><p>You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p></div>
+<% } else { -%>
       <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+<% } -%>
     <![endif]-->
     <% if (includeBootstrap) { %>
     <div class="container">
@@ -34,7 +35,7 @@
           <li><a href="#">About</a></li>
           <li><a href="#">Contact</a></li>
         </ul>
-        <h3 class="text-muted"><%= appPrettyName %></h3>
+        <h3 class="text-muted"><%= prettyName %></h3>
       </div>
 
       <div class="jumbotron">
@@ -69,8 +70,9 @@
       <p>You now have</p>
       <ul>
         <li>HTML5 Boilerplate</li><% if (includeSass) { %>
-        <li>Sass</li><% } %><% if (includeModernizr) { %>
-        <li>Modernizr</li><% } %>
+        <li>Sass</li><% } if (includeModernizr) { %>
+        <li>Modernizr</li><% } if (includeJQuery) { %>
+        <li>jQuery</li><% } %>
       </ul>
     </div>
     <% } %>
@@ -85,8 +87,17 @@
     </script>
 
     <!-- build:js scripts/vendor.js -->
+<% if (includeModernizr) { -%>
+    <script src="scripts/modernizr.js"></script>
+<% } -%>
     <!-- bower:js -->
     <!-- endbower -->
+<% if (includeBootstrap) { bsPlugins.forEach(function (plugin) { -%>
+    <script src="<%= bsPath + plugin %>.js"></script>
+<% }); } -%>
+    <!-- endbuild -->
+    <!-- build:js scripts/main.js -->
+    <script src="scripts/main.js"></script>
     <!-- endbuild -->
   </body>
 </html>

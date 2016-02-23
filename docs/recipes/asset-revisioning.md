@@ -22,21 +22,19 @@ $ npm install --save-dev gulp-rev gulp-rev-replace
 Instead of wasting performance reading CSS and JS files into a new stream, we can notice that we already have that stream available in the `html` task, so we can just perform revving there:
 
 ```diff
-gulp.task('html', ['styles'], function () {
-  var assets = $.useref.assets({searchPath: ['.tmp', 'app', '.']});
-
+gulp.task('html', ['styles'], () => {
   return gulp.src('app/*.html')
-    .pipe(assets)
+    .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))
     .pipe($.if('*.js', $.uglify()))
-    .pipe($.if('*.css', $.csso()))
-+   .pipe($.rev())
-    .pipe(assets.restore())
-    .pipe($.useref())
+    .pipe($.if('*.css', $.minifyCss({compatibility: '*'})))
++   .pipe($.if('*.js', $.rev()))
++   .pipe($.if('*.css', $.rev()))
 +   .pipe($.revReplace())
     .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
     .pipe(gulp.dest('dist'));
 });
 ```
 
-* `.pipe($.rev())` – at this point we have CSS and JS files in the stream, so we are revving them
+* `.pipe($.if('*.js', $.rev()))` – at this point we have JS files in the stream, so we are revving them
+* `.pipe($.if('*.css', $.rev()))` – at this point we have CSS files in the stream, so we are revving them
 * `.pipe($.revReplace())` – at this point we have CSS, JS and HTML files in the stream, so we are updating all references to revved files

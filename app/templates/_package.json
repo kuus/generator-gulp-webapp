@@ -1,13 +1,13 @@
 {
-  "name": "<%- appname %>",
+  "name": "<%- name %>",
   "version": "0.0.1",
   "description": "Project description",
   "config": {
-    "namePretty": "<%- appPrettyName %>",
-    "nameShort": "<%- appShortName %>",
-    "startYear": <%- appYear %>
+    "namePretty": "<%- prettyName %>",
+    "nameShort": "<%- shortName %>",
+    "startYear": <%- year %>
   },
-  "homepage": "http://<%- appname %>.com",
+  "homepage": "http://<%- name %>.com",
   "author": {
     "name": "kuus",
     "email": "kunderikuus@gmail.com",
@@ -19,20 +19,20 @@
   },
   "private": true,
   "repository": {
-    "url": "https://bitbucket.org/kuus/<%- appname %>"
+    "url": "https://bitbucket.org/kuus/<%- name %>"
   },
   "engines": {
     "node": ">=0.12.0"
   },
   "devDependencies": {
-    "autoprefixer-core": "^5.1.8",
-    "browser-sync": "^2.2.1",
+    "autoprefixer": "^6.3.3",
+    "browser-sync": "^2.11.1",
     "del": "^1.1.1",<% if (useTemplateLanguage) { %>
     "extend": "^3.0.0",<% } %>
-    "gulp": "^3.9.0",
+    "gulp": "^3.9.0",<% if (includeBabel) { %>
+    "gulp-babel": "^6.1.1",<% } %>
     "gulp-base64": "^0.1.3",
     "gulp-cache": "^0.4.2",
-    "gulp-combine-media-queries": "^0.2.0",
     "gulp-cssnano": "^2.1.1",<% if (useTemplateLanguage) { %>
     "gulp-data": "^1.2.1",<% } %>
     "gulp-htmlmin": "^1.3.0",
@@ -41,6 +41,8 @@
     "gulp-jade": "^1.1.0",<% } %>
     "gulp-jshint": "^2.0.0",
     "gulp-load-plugins": "^1.2.0",
+    "gulp-merge-media-queries": "^0.2.1",<% if (includeModernizr) { %>
+    "gulp-modernizr": "^0.0.0",<% } %>
     "gulp-postcss": "^6.1.0",
     "gulp-prettify": "^0.4.0",
     "gulp-replace": "^0.5.4",
@@ -61,5 +63,18 @@
     "opn": "^4.0.0",<% if (deploy === 'ftp') { %>
     "vinyl-ftp": "^0.4.5",<% } %>
     "wiredep": "^3.0.0"
+  },
+  "eslintConfig": {
+    "env": {<% if (includeBabel) { %>
+      "es6": true,<% } %>
+      "node": true,
+      "browser": true
+    },
+    "rules": {
+      "quotes": [
+        2,
+        "single"
+      ]
+    }
   }
 }

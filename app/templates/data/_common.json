@@ -1,5 +1,5 @@
 {
-  "appName": "<%= appPrettyName %>",
+  "appName": "<%= prettyName %>",
   "nav": [
     {
       "name": "About",

@@ -25,7 +25,7 @@ If you had something different in mind, modify paths accordingly.
 
 Install the Jade gulp plugin:
 
-```sh
+```
 $ npm install --save-dev gulp-jade
 ```
 
@@ -34,10 +34,11 @@ $ npm install --save-dev gulp-jade
 Add this task to your `gulpfile.js`, it will compile `.jade` files to `.html` files in `.tmp`:
 
 ```js
-gulp.task('views', function () {
+gulp.task('views', () => {
   return gulp.src('app/*.jade')
     .pipe($.jade({pretty: true}))
-    .pipe(gulp.dest('.tmp'));
+    .pipe(gulp.dest('.tmp'))
+    .pipe(reload({stream: true}));
 });
 ```
 
@@ -46,12 +47,12 @@ We are passing `pretty: true` as an option to get a nice HTML output, otherwise 
 ### 3. Add `views` as a dependency of both `html` and `serve`
 
 ```js
-gulp.task('html', ['views', 'styles'], function () {
+gulp.task('html', ['views', 'styles'], () => {
     ...
 ```
 
 ```js
-gulp.task('serve', ['views', 'styles', 'fonts'], function () {
+gulp.task('serve', ['views', 'styles', 'fonts'], () => {
     ...
 ```
 
@@ -62,14 +63,14 @@ gulp.task('serve', ['views', 'styles', 'fonts'], function () {
 We want to parse the compiled HTML:
 
 ```diff
- gulp.task('html', ['views', 'styles'], function () {
+ gulp.task('html', ['views', 'styles'], () => {
    var assets = $.useref.assets({searchPath: ['.tmp', 'app', '.']});
 
 -  return gulp.src('app/*.html')
 +  return gulp.src(['app/*.html', '.tmp/*.html'])
      .pipe(assets)
      .pipe($.if('*.js', $.uglify()))
-     .pipe($.if('*.css', $.csso()))
+     .pipe($.if('*.css', $.minifyCss({compatibility: 'ie8'})))
      .pipe(assets.restore())
      .pipe($.useref())
      .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
@@ -82,7 +83,7 @@ We want to parse the compiled HTML:
 We don't want to copy over `.jade` files in the build process:
 
 ```diff
- gulp.task('extras', function () {
+ gulp.task('extras', () => {
    return gulp.src([
      'app/*.*',
      '!app/*.html',
@@ -98,7 +99,7 @@ We don't want to copy over `.jade` files in the build process:
 Wiredep supports Jade:
 
 ```diff
- gulp.task('wiredep', function () {
+ gulp.task('wiredep', () => {
    var wiredep = require('wiredep').stream;
 
    gulp.src('app/styles/*.scss')
@@ -124,7 +125,7 @@ Assuming your wiredep comment blocks are in the layouts.
 Recompile Jade templates on each change and reload the browser after an HTML file is compiled:
 
 ```diff
- gulp.task('serve', ['views', 'styles', 'fonts'], function () {
+ gulp.task('serve', ['views', 'styles', 'fonts'], () => {
    ...
    gulp.watch([
      'app/*.html',
@@ -136,6 +137,7 @@ Recompile Jade templates on each change and reload the browser after an HTML fil
 
 +  gulp.watch('app/**/*.jade', ['views']);
    gulp.watch('app/styles/**/*.scss', ['styles']);
+   gulp.watch('app/fonts/**/*', ['fonts']);
    gulp.watch('bower.json', ['wiredep', 'fonts']);
 });
 ```
@@ -154,6 +156,7 @@ html.no-js
     title My Webapp
     meta(name='description' content='')
     meta(name='viewport' content='width=device-width, initial-scale=1')
+    link(rel='apple-touch-icon' href='apple-touch-icon.png')
     // Place favicon.ico and apple-touch-icon.png in the root directory
 
     // build:css styles/vendor.css
