@@ -274,7 +274,7 @@ gulp.task('views', function () {
         return extend(data, JSON.parse(fs.readFileSync(dataFilePath)));
       } catch(e) {
         $.util.log($.util.colors.yellow('A data file specific for this template is missing at: ' + dataFilePath));
-        return {};
+        return data;
       }
     }))
 <% if (useJade) { -%>
