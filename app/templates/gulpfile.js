@@ -68,7 +68,7 @@ gulp.task('styles', function () {
     .pipe(reload({stream: true}));
 });
 
-gulp.task('scripts', function (cb) {
+gulp.task('scripts', function (<% if (!includeModernizr) { %>cb<% } %>) {
 <% if (includeModernizr) { -%>
   var modernizrConf = require('./app/scripts/modernizr.json');
   delete modernizrConf.dest;
