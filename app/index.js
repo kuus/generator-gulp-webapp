@@ -52,7 +52,6 @@ module.exports = generators.Base.extend({
 
   initializing: function () {
     this.pkg = require('../package.json');
-    this.secrets = require('../../secrets.json') || {};
   },
 
   prompting: function () {
@@ -63,11 +62,6 @@ module.exports = generators.Base.extend({
     }
 
     var prompts = [{
-    //   type: 'input',
-    //   name: 'name',
-    //   message: 'Your project name',
-    //   default: this.appname
-    // }, {
       type: 'checkbox',
       name: 'features',
       message: 'What more would you like?',
@@ -78,6 +72,14 @@ module.exports = generators.Base.extend({
       }, {
         name: 'Modernizr',
         value: 'includeModernizr',
+        checked: true
+      }, {
+        name: 'Babel',
+        value: 'includeBabel',
+        checked: false
+      }, {
+        name: 'Uncss',
+        value: 'includeUncss',
         checked: false
       }]
     }, {
@@ -100,7 +102,7 @@ module.exports = generators.Base.extend({
     }, {
       type: 'list',
       name: 'deploy',
-      message: 'You want a gulp deploy task, which connection type?',
+      message: 'If you want a gulp deploy task, which connection you need?',
       choices: [{
         name: 'SFTP',
         value: 'sftp',
@@ -149,10 +151,12 @@ module.exports = generators.Base.extend({
         includeBootstrap: hasFeature('includeBootstrap'),
         includeModernizr: hasFeature('includeModernizr'),
         includeJQuery: answers.includeJQuery,
+        includeBabel: hasFeature('includeBabel'),
+        includeUncss: hasFeature('includeUncss'),
         useTemplateLanguage: answers.templating !== 'html',
-        tplLangExt: answers.templating,
         useNunjucks: answers.templating === 'njk',
         useJade: answers.templating === 'jade',
+        tplLangExt: answers.templating,
         deploy: answers.deploy,
         name: appname,
         prettyName: changeCase.titleCase(appname),
@@ -161,7 +165,6 @@ module.exports = generators.Base.extend({
         generatedOn: new Date().toISOString().split('T')[0],
         generatorName: this.pkg.name,
         generatorVersion: this.pkg.version,
-        includeBabel: this.options['babel'],
         testFramework: this.options['test-framework']
       };
 
@@ -176,8 +179,8 @@ module.exports = generators.Base.extend({
       this.registerTransformStream(gulpReplace(/%@>/g, '%>'));
 
       this.fs.copyTpl(
-        this.templatePath('gulpfile.js'), // 'gulpfile.babel.js'
-        this.destinationPath('gulpfile.js'), // 'gulpfile.babel.js'
+        this.templatePath('gulpfile.babel.js'),
+        this.destinationPath('gulpfile.babel.js'),
         this.app
       );
     },
@@ -389,17 +392,9 @@ module.exports = generators.Base.extend({
 
   end: function () {
     var bowerJson = this.fs.readJSON(this.destinationPath('bower.json'));
-    var howToInstall =
-      '\nAfter running ' +
-      chalk.yellow.bold('npm install & bower install') +
-      ', inject your' +
-      '\nfront end dependencies by running ' +
-      chalk.yellow.bold('gulp wiredep') +
-      '.';
     var indexFileName = this.app.useTemplateLanguage ? '_base.' + this.app.tplLangExt : 'index.html';
 
     if (this.options['skip-install']) {
-      this.log(howToInstall);
       return;
     }
 
