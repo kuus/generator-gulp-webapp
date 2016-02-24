@@ -53,7 +53,8 @@ gulp.task('styles', function () {
       includePaths: ['.']
     }).on('error', $.sass.logError))
     .pipe($.postcss([
-      require('autoprefixer')({browsers: ['last 2 versions', 'ie 8']})
+      require('autoprefixer')({browsers: ['last 2 versions', 'ie 8']}),
+      require('css-mqpacker')({ sort: true })
     ]))
     .pipe($.if(IS_DIST, $.base64({
       extensions: ['svg', 'png', /\.jpg#datauri$/i],
@@ -62,7 +63,6 @@ gulp.task('styles', function () {
       debug: true
     })))
     .pipe($.if(IS_DIST, $.replace(LICENSE_PLACEHOLDER, banner)))
-    .pipe($.mergeMediaQueries()) // { log: true }
     .pipe($.sourcemaps.write())
     .pipe(gulp.dest('.tmp/styles'))
     .pipe(reload({stream: true}));
