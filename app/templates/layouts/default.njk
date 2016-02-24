@@ -1,0 +1,27 @@
+{% extends '../_base.njk' %}
+
+{% block body %}
+
+  {% block header %}
+    {% include 'layouts/partials/header.njk' %}
+  {% endblock %}
+
+  <div class="container">
+    {% block ie8_alert %}
+    <!--[if lt IE 10]>
+<% if (includeBootstrap) { -%>
+      <div class="alert alert-warning browserupgrade"><p>You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p></div>
+<% } else { -%>
+      <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+<% } -%>
+    <![endif]-->
+    {% endblock %}
+    {% block content %}
+    {% endblock %}
+  </div>
+
+  {% block footer %}
+    {% include 'layouts/partials/footer.njk' %}
+  {% endblock %}
+
+{% endblock %}

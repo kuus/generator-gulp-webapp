@@ -10,9 +10,9 @@ Fork of `generator-webapp`, see [original repo](https://github.com/yeoman/genera
 
 ## Diff from original
  - Does not prompt for project name, it grabs it from the root folder name
- - Template language choice between [swig](http://paularmstrong.github.io/swig/), [jade](http://jade-lang.com/) (kind of follows the [official recipe](https://github.com/yeoman/generator-gulp-webapp/blob/master/docs/recipes/jade.md)), and none.
+ - Template language choice between [nunjucks](https://mozilla.github.io/nunjucks/), [swig](http://paularmstrong.github.io/swig/), [jade](http://jade-lang.com/) (kind of follows the [official recipe](https://github.com/yeoman/generator-gulp-webapp/blob/master/docs/recipes/jade.md)), and none.
  - When a template language is used you can store content data outside the templates (in `data/` folder to mimic real data from DB.
- - Implement a basic template inheritance pattern through jade and swig.
+ - Implement a basic template inheritance pattern through nunjucks, swig and jade.
  - Include only the desired Bootstrap scss components.
  - Inline small images and svg fonts in css (only during build), with [gulp-base64](https://www.npmjs.com/package/gulp-base64)
  - Combine media queries in css, with [gulp-merge-media-queries](https://www.npmjs.com/package/gulp-merge-media-queries).
@@ -25,11 +25,10 @@ Fork of `generator-webapp`, see [original repo](https://github.com/yeoman/genera
  - Javascript file `main.js` wrapped in a [IIFE](http://benalman.com/news/2010/11/immediately-invoked-function-expression/
 
 ## Todo
- - Support [nunjucks](https://mozilla.github.io/nunjucks/), the syntax seems same as swig which is currently unmantained, see [recipe](https://github.com/yeoman/generator-webapp/blob/master/docs/recipes/nunjucks.md)
  - Populate the `_dummy.json` somehow, maybe with harcoded data or with some node module.
  - The data.json for each page, so for instance `index.json` might be a template that generates a custom json for that specific page.
  - Maybe use some remote mocked js API.
- - Do a generator for a new page, it will create a `pageName.(html,jade,swig)` file in the root, a corresponding `data/pageName.json` with content data and a `style/page-pageName.scss` module.
+ - Do a generator for a new page, it will create a `pageName.(html,njk,swig,jade)` file in the root, a corresponding `data/pageName.json` with content data and a `style/page-pageName.scss` module.
 
 ## License
 

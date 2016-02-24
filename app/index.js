@@ -85,9 +85,13 @@ module.exports = generators.Base.extend({
       name: 'templating',
       message: 'Which template language you want to use?',
       choices: [{
+        name: 'Nunjucks',
+        value: 'njk',
+        checked: true
+      }, {
         name: 'Swig',
         value: 'swig',
-        checked: true
+        checked: false
       }, {
         name: 'Jade',
         value: 'jade',
@@ -151,8 +155,9 @@ module.exports = generators.Base.extend({
         includeJQuery: answers.includeJQuery,
         useTemplateLanguage: answers.templating !== 'html',
         tplLangExt: answers.templating,
-        useJade: answers.templating === 'jade',
+        useNunjucks: answers.templating === 'njk',
         useSwig: answers.templating === 'swig',
+        useJade: answers.templating === 'jade',
         deploy: answers.deploy,
         name: appname,
         prettyName: changeCase.titleCase(appname),

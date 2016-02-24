@@ -281,6 +281,10 @@ gulp.task('views', function () {
     .pipe($.jade({
       pretty: true
     }))
+<% } if (useNunjucks) { -%>
+    .pipe($.nunjucksRender({
+      path: 'app'
+    }))
 <% } if (useSwig) { -%>
     .pipe($.swig({
       defaults: {
