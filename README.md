@@ -25,6 +25,7 @@ Fork of `generator-webapp`, see [original repo](https://github.com/yeoman/genera
  - Javascript file `main.js` wrapped in a [IIFE](http://benalman.com/news/2010/11/immediately-invoked-function-expression/
 
 ## Todo
+ - Support [nunjucks](https://mozilla.github.io/nunjucks/), the syntax seems same as swig which is currently unmantained, see [recipe](https://github.com/yeoman/generator-webapp/blob/master/docs/recipes/nunjucks.md)
  - Populate the `_dummy.json` somehow, maybe with harcoded data or with some node module.
  - The data.json for each page, so for instance `index.json` might be a template that generates a custom json for that specific page.
  - Maybe use some remote mocked js API.
