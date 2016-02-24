@@ -1,28 +1,22 @@
 {
-  "features" : {<% if (useJade) { %>
-    "jade" : {
-      "title" : "Jade templates",
-      "description" : "Robust, elegant, feature rich template engine for nodejs"
-    },<% } if (useNunjucks) { %>
-    "nunkucks" : {
+  "features" : [<% if (useNunjucks) { %>{
       "title" : "Nunjucks templates",
       "description" : "A Node.js and Browser-based JavaScript Template Engine"
-    },<% } %>
-    "html5" : {
+    }, <% } if (useJade) { %>{
+      "title" : "Jade templates",
+      "description" : "Robust, elegant, feature rich template engine for nodejs"
+    }, <% } %>{
       "title" : "HTML5 Boilerplate",
       "description" : "HTML5 Boilerplate is a professional front-end template for building fast, robust, and adaptable web apps or sites."
-    },<% if (includeBootstrap) { %>
-    "bootstrap" : {
+    }, <% if (includeBootstrap) { %>{
       "title" : "Bootstrap",
       "description" : "Sleek, intuitive, and powerful mobile first front-end framework for faster and easier web development."
-    },<% } if (includeModernizr) { %>
-    "modernizr" : {
+    }, <% } if (includeModernizr) { %>{
       "title" : "Modernizr",
       "description" : "Modernizr is an open-source JavaScript library that helps you build the next generation of HTML5 and CSS3-powered websites."
-    },<% } %>
-    "sass" : {
+    }, <% } %>{
       "title" : "Sass",
       "description" : "Sass is the most mature, stable, and powerful professional grade CSS extension language in the world."
     }
-  }
+  ]
 }
