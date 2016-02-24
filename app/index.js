@@ -89,10 +89,6 @@ module.exports = generators.Base.extend({
         value: 'njk',
         checked: true
       }, {
-        name: 'Swig',
-        value: 'swig',
-        checked: false
-      }, {
         name: 'Jade',
         value: 'jade',
         checked: false
@@ -156,7 +152,6 @@ module.exports = generators.Base.extend({
         useTemplateLanguage: answers.templating !== 'html',
         tplLangExt: answers.templating,
         useNunjucks: answers.templating === 'njk',
-        useSwig: answers.templating === 'swig',
         useJade: answers.templating === 'jade',
         deploy: answers.deploy,
         name: appname,

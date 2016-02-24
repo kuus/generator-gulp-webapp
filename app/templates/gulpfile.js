@@ -285,12 +285,6 @@ gulp.task('views', function () {
     .pipe($.nunjucksRender({
       path: 'app'
     }))
-<% } if (useSwig) { -%>
-    .pipe($.swig({
-      defaults: {
-        cache: false
-      }
-    }))
 <% } -%>
     .pipe(gulp.dest('.tmp'));
 });

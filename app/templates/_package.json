@@ -53,8 +53,7 @@
     "gulp-sass": "^2.2.0",<% if (deploy === 'sftp') { %>
     "gulp-sftp": "^0.1.5",<% } %>
     "gulp-size": "^2.0.0",
-    "gulp-sourcemaps": "^1.6.0",<% if (useSwig) { %>
-    "gulp-swig": "^0.8.0",<% } %>
+    "gulp-sourcemaps": "^1.6.0",
     "gulp-uglify": "^1.5.2",
     "gulp-uncss": "^1.0.4",
     "gulp-useref": "^3.0.5",

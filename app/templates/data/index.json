@@ -3,9 +3,9 @@
     "jade" : {
       "title" : "Jade templates",
       "description" : "Robust, elegant, feature rich template engine for nodejs"
-    },<% } if (useSwig) { %>
-    "swig" : {
-      "title" : "Swig templates",
+    },<% } if (useNunjucks) { %>
+    "nunkucks" : {
+      "title" : "Nunjucks templates",
       "description" : "A Node.js and Browser-based JavaScript Template Engine"
     },<% } %>
     "html5" : {
