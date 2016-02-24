@@ -9,10 +9,11 @@ var browserSync = require('browser-sync');
 var reload = browserSync.reload;
 var argv = require('minimist')(process.argv.slice(2));
 var pkg = require('./package.json');
-var PATH_BUILD = 'dist';
 var LICENSE_PLACEHOLDER = '/*! @license credits */';
 var IS_DIST = !!argv.dist || !!argv.d;
+<% if (includeUncss) { -%>
 var UNCSS = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf('uncss') !== -1 : false;
+<% } -%>
 var MINIFY_HTML = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf('htmlmin') !== -1 : false;
 var banner = require('lodash.template')([
   '/*!',
@@ -23,26 +24,6 @@ var banner = require('lodash.template')([
   ' * <@%- pkg.license.type %@> <@%- pkg.config.startYear %@><@% if (new Date().getFullYear() > pkg.config.startYear) { %@>-<@%- new Date().getFullYear() %@><@% } %@><@% if (pkg.license.url) { %@> (<@%- pkg.license.url %@>)<@% } %@>',
   ' */\n'
 ].join('\n'))({ pkg: pkg });
-
-/**
- * Clean url of static html files, allowing to write clean url in link tags
- * @this {String} prePath
- */
-function cleanUrl (req, res, cb) {
-  var path = require('path');
-  var url = require('url');
-  var fs = require('fs');
-  var prePath = this;
-
-  var uri = url.parse(req.url);
-  if (uri.pathname.length > 1 &&
-      path.extname(uri.pathname) === '' &&
-      fs.existsSync(prePath + uri.pathname + '.html')
-  ) {
-    req.url = uri.pathname + '.html' + (uri.search || '');
-  }
-  cb();
-}
 
 gulp.task('styles', function () {
   return gulp.src('app/styles/*.scss')
@@ -88,9 +69,9 @@ function jshint (files) {
   return function () {
     return gulp.src(files)
       .pipe(reload({stream: true, once: true}))
-      .pipe($.jshint())
-      .pipe($.jshint.reporter('jshint-stylish'))
-      .pipe($.if(!browserSync.active, $.jshint.reporter('fail')));
+      .pipe($.eslint(options))
+      .pipe($.eslint.format())
+      .pipe($.if(!browserSync.active, $.eslint.failAfterError()));
   };
 }
 
@@ -98,12 +79,14 @@ gulp.task('jshint', jshint('app/scripts/**/*.js'));
 gulp.task('jshint:test', jshint('test/spec/**/*.js'));
 
 var cssOptimization = lazypipe()
+<% if (includeUncss) { -%>
   .pipe(function () {
     return $.if(UNCSS, $.uncss({
       html: ['app/*.html', '.tmp/*.html'],
       ignoreSheets: '/bower_components/g'
     }));
   })
+<% } -%>
   .pipe($.cssnano);
 
 var jsOptimization = lazypipe()
@@ -121,28 +104,26 @@ gulp.task('html', [<% if (useTemplateLanguage) { %>'views', <% } %>'styles', 'sc
     .pipe($.if('*.css', cssOptimization()))
     .pipe($.if('*.js', jsOptimization()))
     .pipe($.if('*.html', htmlOptimization()))
-    .pipe(gulp.dest(PATH_BUILD));
+    .pipe(gulp.dest('dist'));
 });
 
 gulp.task('images', function () {
   return gulp.src('app/images/**/*')
-    .pipe($.if($.if.isFile, $.cache($.imagemin({
+    .pipe($.cache($.imagemin({
       progressive: true,
       interlaced: true,
       // don't remove IDs from SVGs, they are often used
       // as hooks for embedding and styling
       svgoPlugins: [{cleanupIDs: false}]
-    }))
-    .on('error', function (err) { $.util.log($.util.colors.magenta(err)); this.end; })))
-    .pipe(gulp.dest(PATH_BUILD + '/images'));
+    })))
+    .pipe(gulp.dest('dist/images'));
 });
 
 gulp.task('fonts', function () {
-  return gulp.src(require('main-bower-files')({
-    filter: '**/*.{eot,svg,ttf,woff,woff2}'
-  }).concat('app/fonts/*.*'))
+  return gulp.src(require('main-bower-files')('**/*.{eot,svg,ttf,woff,woff2}', function (err) {})
+    .concat('app/fonts/**/*'))
     .pipe(gulp.dest('.tmp/fonts'))
-    .pipe(gulp.dest(PATH_BUILD + '/fonts'));
+    .pipe(gulp.dest('dist/fonts'));
 });
 
 gulp.task('extras', function () {
@@ -155,10 +136,10 @@ gulp.task('extras', function () {
 <% } -%>
   ], {
     dot: true
-  }).pipe(gulp.dest(PATH_BUILD));
+  }).pipe(gulp.dest('dist'));
 });
 
-gulp.task('clean', require('del').bind(null, ['.tmp', PATH_BUILD]));
+gulp.task('clean', require('del').bind(null, ['.tmp', 'dist']));
 
 gulp.task('serve', [<% if (useTemplateLanguage) { %>'views', <% } %>'styles', 'scripts', 'fonts', 'wiredep'], function () {
   browserSync({
@@ -169,8 +150,7 @@ gulp.task('serve', [<% if (useTemplateLanguage) { %>'views', <% } %>'styles', 's
       baseDir: ['.tmp', 'app'],
       routes: {
         '/bower_components': 'bower_components'
-      },
-      middleware: cleanUrl.bind(<% if (useTemplateLanguage) { %>'.tmp'<% } else { %>'app'<% } %>)
+      }
     }
   });
 
@@ -202,8 +182,7 @@ gulp.task('serve:dist', function () {
     port: 9000,
     open: (!!argv.o || !!argv.open) || false,
     server: {
-      baseDir: [PATH_BUILD],
-      middleware: cleanUrl.bind(PATH_BUILD)
+      baseDir: ['dist']
     }
   });
 });
@@ -215,8 +194,7 @@ gulp.task('serve:test', function () {
     port: 9000,
     ui: false,
     server: {
-      baseDir: 'test',
-      middleware: cleanUrl.bind('test')
+      baseDir: 'test'
     }
   });
 
@@ -250,9 +228,13 @@ gulp.task('wiredep', function () {
 <% } -%>
 });
 
-// an example of build task: `$ gulp build --dist htmlmin,uncss`
-gulp.task('build', ['jshint', 'html', 'images', 'fonts', 'extras'], function () {
-  return gulp.src(PATH_BUILD + '/**/*').pipe($.size({title: 'build', gzip: true}));
+gulp.task('_build', ['jshint', 'html', 'images', 'fonts', 'extras'], function () {
+  return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
+});
+
+// an example of build task: `$ gulp build --dist htmlmin,`
+gulp.task('build', ['clean'], function () {
+  gulp.start('_build');
 });
 
 gulp.task('default', ['serve']);
@@ -303,8 +285,8 @@ gulp.task('deploy', function() {
     log: $.util.log
   });
 <% } -%>
-  return gulp.src(PATH_BUILD + '/**', {
-      base: PATH_BUILD,
+  return gulp.src('dist/**', {
+      base: 'dist',
       buffer: false
     })
 <% if (deploy === 'sftp') { -%>
