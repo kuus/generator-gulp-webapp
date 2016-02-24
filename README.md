@@ -14,7 +14,7 @@ Fork of `generator-webapp`, see [original repo](https://github.com/yeoman/genera
  - When a template language is used you can store content data outside the templates (in `data/` folder to mimic real data from DB.
  - Implement a basic template inheritance pattern through `nunjucks` and `jade`.
  - Include only the desired Bootstrap scss components.
- - Inline small images and svg fonts in css (only during build), with [gulp-base64](https://www.npmjs.com/package/gulp-base64)
+ - Inline small images and svg fonts in css (only with `-dist` arg), with [gulp-base64](https://www.npmjs.com/package/gulp-base64)
  - Combine media queries in css, with [css-mqpacker](https://www.npmjs.com/package/css-mqpacker).
  - Add credits/copyright banners to compiled and minified css/js based on the `package.json` content.
  - Optional new task `$ gulp deploy`, yeoman prompts to let you choose between `ftp` (with [vinyl-ftp](https://www.npmjs.com/package/vinyl-ftp)), `sftp` (with [gulp-sftp](https://www.npmjs.com/package/gulp-sftp)) or `none`.
