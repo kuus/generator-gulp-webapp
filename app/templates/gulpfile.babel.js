@@ -108,7 +108,7 @@ const cssOptimization = lazypipe()
     }));
   })
 <% } -%>
-  .pipe($.cssnano);
+  .pipe($.cssnano, { safe: true });
 
 const jsOptimization = lazypipe()
   .pipe($.uglify, { preserveComments: 'some', compress: { drop_console: true } })
