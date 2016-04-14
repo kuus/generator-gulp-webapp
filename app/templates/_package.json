@@ -50,6 +50,7 @@
     "gulp-postcss": "^6.1.0",
     "gulp-plumber": "^1.0.1",
     "gulp-prettify": "^0.4.0",
+    "gulp-rename": "^1.2.2",
     "gulp-replace": "^0.5.4",
     "gulp-sass": "^2.2.0",<% if (deploy === 'sftp') { %>
     "gulp-sftp": "^0.1.5",<% } %>
