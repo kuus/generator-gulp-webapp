@@ -116,9 +116,10 @@ const cssOptimization = lazypipe()
   .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
 
 const jsOptimization = lazypipe()
+  .pipe(() => { return $.if(DIST_STATIC, $.replace(LICENSE_PLACEHOLDER, banner)); })
   .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
   .pipe($.uglify, { preserveComments: 'some', compress: { drop_console: true } })
-  .pipe($.replace, LICENSE_PLACEHOLDER, banner);
+  .pipe($.replace, LICENSE_PLACEHOLDER, banner)
   .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist')); })
   .pipe(() => { return $.if(DIST_STATIC, $.rename({ suffix: '-mininified' })); })
   .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
