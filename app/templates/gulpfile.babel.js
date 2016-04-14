@@ -18,6 +18,7 @@ const IS_DIST = !!argv.dist || !!argv.d;
 const UNCSS = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf('uncss') !== -1 : false;
 <% } -%>
 const MINIFY_HTML = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf('htmlmin') !== -1 : false;
+const DIST_STATIC = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf('static') !== -1 : false;
 const banner = tpl([
   '/*!',
   ' * <@%- pkg.config.namePretty %@> v<@%- pkg.version %@> (<@%- pkg.homepage %@>)',
@@ -108,11 +109,19 @@ const cssOptimization = lazypipe()
     }));
   })
 <% } -%>
-  .pipe($.cssnano, { safe: true });
+  .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
+  .pipe($.cssnano, { safe: true })
+  .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist')); })
+  .pipe(() => { return $.if(DIST_STATIC, $.rename({ suffix: '-mininified' })); })
+  .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
 
 const jsOptimization = lazypipe()
+  .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
   .pipe($.uglify, { preserveComments: 'some', compress: { drop_console: true } })
   .pipe($.replace, LICENSE_PLACEHOLDER, banner);
+  .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist')); })
+  .pipe(() => { return $.if(DIST_STATIC, $.rename({ suffix: '-mininified' })); })
+  .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
 
 const htmlOptimization = lazypipe()
   .pipe(() => {
