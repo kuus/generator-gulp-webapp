@@ -12,6 +12,8 @@ build
 # Minified assets
 *.min.js
 *.min.css
+!dist-static/**/*.min.js
+!dist-static/**/*.min.css
 
 # Front-end and packages folders
 node_modules
