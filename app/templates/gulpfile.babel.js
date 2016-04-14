@@ -140,7 +140,7 @@ gulp.task('html', ['styles', 'scripts'], () => {
     .pipe($.if('*.css', cssOptimization()))
     .pipe($.if('*.js', jsOptimization()))
     .pipe($.if('*.html', htmlOptimization()))
-    .pipe(gulp.dest('dist'));
+    .pipe($.if('*.html', gulp.dest('dist')));
 });
 
 gulp.task('images', () => {
