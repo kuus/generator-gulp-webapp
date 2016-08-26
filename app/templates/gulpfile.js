@@ -1,13 +1,13 @@
 // generated on <%= generatedOn %> using <%= generatorName %> <%= generatorVersion %>
-import gulp from 'gulp';
-import gulpLoadPlugins from 'gulp-load-plugins';
-import browserSync from 'browser-sync';
-import del from 'del';
-import {stream as wiredep} from 'wiredep';
-import lazypipe from 'lazypipe';
-import minimist from 'minimist';
-import tpl from 'lodash.template';
-import pkg from './package.json';
+const gulp = require('gulp');
+const gulpLoadPlugins = require('gulp-load-plugins');
+const browserSync = require('browser-sync');
+const del = require('del');
+const wiredep = require('wiredep').stream;
+const lazypipe = require('lazypipe');
+const minimist = require('minimist');
+const tpl = require('lodash.template');
+const pkg = require('./package.json');
 
 const $ = gulpLoadPlugins();
 const reload = browserSync.reload;
@@ -79,26 +79,32 @@ gulp.task('scripts', () => {
 });
 
 function lint(files, options) {
-  return () => {
-    return gulp.src(files)
-      .pipe(reload({stream: true, once: true}))
-      .pipe($.eslint(options))
-      .pipe($.eslint.format())
-      .pipe($.if(!browserSync.active, $.eslint.failAfterError()));
-  };
+  return gulp.src(files)
+    .pipe(reload({stream: true, once: true}))
+    .pipe($.eslint(options))
+    .pipe($.eslint.format())
+    .pipe($.if(!browserSync.active, $.eslint.failAfterError()));
 }
-const testLintOptions = {
-  env: {
-<% if (testFramework === 'mocha') { -%>
-    mocha: true
-<% } else if (testFramework === 'jasmine') { -%>
-    jasmine: true
-<% } -%>
-  }
-};
 
-gulp.task('lint', lint('app/scripts/**/*.js'));
-gulp.task('lint:test', lint('test/spec/**/*.js', testLintOptions));
+gulp.task('lint', () => {
+  return lint('app/scripts/**/*.js', {
+    fix: true
+  })
+    .pipe(gulp.dest('app/scripts'));
+});
+gulp.task('lint:test', () => {
+  return lint('test/spec/**/*.js', {
+    fix: true,
+    env: {
+<% if (testFramework === 'mocha') { -%>
+      mocha: true
+<% } else if (testFramework === 'jasmine') { -%>
+      jasmine: true
+<% } -%>
+    }
+  })
+    .pipe(gulp.dest('test/spec'));
+});
 
 const cssOptimization = lazypipe()
 <% if (includeUncss) { -%>
@@ -110,7 +116,7 @@ const cssOptimization = lazypipe()
   })
 <% } -%>
   .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
-  .pipe($.cssnano, { safe: true })
+  .pipe($.cssnano, { safe: true, autoprefixer: false })
   .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist')); })
   .pipe(() => { return $.if(DIST_STATIC, $.rename({ suffix: '.min' })); })
   .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
@@ -133,8 +139,13 @@ const htmlOptimization = lazypipe()
 gulp.task('html', ['styles', 'scripts', 'views'], () => {
   return gulp.src(['app/*.html', '.tmp/*.html'])
 <% } else { -%>
+<% if (includeBabel) { -%>
 gulp.task('html', ['styles', 'scripts'], () => {
   return gulp.src('app/*.html')
+<% } else { -%>
+gulp.task('html', ['styles'], () => {
+  return gulp.src('app/*.html')
+<% } -%>
 <% } -%>
     .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))
     .pipe($.if('*.css', cssOptimization()))
@@ -145,13 +156,7 @@ gulp.task('html', ['styles', 'scripts'], () => {
 
 gulp.task('images', () => {
   return gulp.src('app/images/**/*')
-    .pipe($.cache($.imagemin({
-      progressive: true,
-      interlaced: true,
-      // don't remove IDs from SVGs, they are often used
-      // as hooks for embedding and styling
-      svgoPlugins: [{cleanupIDs: false}]
-    })))
+    .pipe($.cache($.imagemin()))
     .pipe(gulp.dest('dist/images'));
 });
 
@@ -164,7 +169,7 @@ gulp.task('fonts', () => {
 
 gulp.task('extras', () => {
   return gulp.src([
-    'app/*.*',
+    'app/*',
 <% if (!useTemplateLanguage) { -%>
     '!app/*.html',
 <% } else { -%>

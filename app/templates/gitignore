@@ -1,7 +1,7 @@
 ### Project specific
 # ----------------------
 dist
-build
+
 
 ### Generic
 # ----------------------
@@ -17,9 +17,10 @@ build
 
 # Front-end and packages folders
 node_modules
-bower_components
-.sass-cache
 .tmp
+bower_components
+test/bower_components
+.sass-cache
 .publish
 composer.lock
 phpdoc-cache*

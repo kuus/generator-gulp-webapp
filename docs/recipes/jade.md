@@ -36,6 +36,7 @@ Add this task to your `gulpfile.js`, it will compile `.jade` files to `.html` fi
 ```js
 gulp.task('views', () => {
   return gulp.src('app/*.jade')
+    .pipe($.plumber())
     .pipe($.jade({pretty: true}))
     .pipe(gulp.dest('.tmp'))
     .pipe(reload({stream: true}));
@@ -47,12 +48,12 @@ We are passing `pretty: true` as an option to get a nice HTML output, otherwise 
 ### 3. Add `views` as a dependency of both `html` and `serve`
 
 ```js
-gulp.task('html', ['views', 'styles'], () => {
+gulp.task('html', ['views', 'styles', 'scripts'], () => {
     ...
 ```
 
 ```js
-gulp.task('serve', ['views', 'styles', 'fonts'], () => {
+gulp.task('serve', ['views', 'styles', 'scripts', 'fonts'], () => {
     ...
 ```
 
@@ -68,12 +69,10 @@ We want to parse the compiled HTML:
 
 -  return gulp.src('app/*.html')
 +  return gulp.src(['app/*.html', '.tmp/*.html'])
-     .pipe(assets)
+     .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))
      .pipe($.if('*.js', $.uglify()))
-     .pipe($.if('*.css', $.minifyCss({compatibility: 'ie8'})))
-     .pipe(assets.restore())
-     .pipe($.useref())
-     .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
+     .pipe($.if('*.css', $.cssnano()))
+     .pipe($.if('*.html', $.htmlmin({collapseWhitespace: true})))
      .pipe(gulp.dest('dist'));
 });
 ```
@@ -86,7 +85,8 @@ We don't want to copy over `.jade` files in the build process:
  gulp.task('extras', () => {
    return gulp.src([
      'app/*.*',
-     '!app/*.html',
+-    '!app/*.html'
++    '!app/*.html',
 +    '!app/*.jade'
    ], {
      dot: true
@@ -100,8 +100,6 @@ Wiredep supports Jade:
 
 ```diff
  gulp.task('wiredep', () => {
-   var wiredep = require('wiredep').stream;
-
    gulp.src('app/styles/*.scss')
      .pipe(wiredep({
        ignorePath: /^(\.\.\/)+/
@@ -114,7 +112,8 @@ Wiredep supports Jade:
        exclude: ['bootstrap-sass'],
        ignorePath: /^(\.\.\/)*\.\./
      }))
-     .pipe(gulp.dest('app/layouts'));
+-    .pipe(gulp.dest('app'));
++    .pipe(gulp.dest('app/layouts'));
  });
 ```
 
@@ -125,18 +124,17 @@ Assuming your wiredep comment blocks are in the layouts.
 Recompile Jade templates on each change and reload the browser after an HTML file is compiled:
 
 ```diff
- gulp.task('serve', ['views', 'styles', 'fonts'], () => {
+ gulp.task('serve', ['views', 'styles', 'scripts', 'fonts'], () => {
    ...
    gulp.watch([
      'app/*.html',
-+    '.tmp/*.html',
-     '.tmp/styles/**/*.css',
-     'app/scripts/**/*.js',
-     'app/images/**/*'
+     'app/images/**/*',
+     '.tmp/fonts/**/*'
    ]).on('change', reload);
 
 +  gulp.watch('app/**/*.jade', ['views']);
    gulp.watch('app/styles/**/*.scss', ['styles']);
+   gulp.watch('app/scripts/**/*.js', ['scripts']);
    gulp.watch('app/fonts/**/*', ['fonts']);
    gulp.watch('bower.json', ['wiredep', 'fonts']);
 });
@@ -212,18 +210,18 @@ html.no-js
     // endbuild
 
     // build:js scripts/plugins.js
-    script(src='../bower_components/bootstrap-sass/vendor/assets/javascripts/bootstrap/affix.js')
-    script(src='../bower_components/bootstrap-sass/vendor/assets/javascripts/bootstrap/alert.js')
-    script(src='../bower_components/bootstrap-sass/vendor/assets/javascripts/bootstrap/dropdown.js')
-    script(src='../bower_components/bootstrap-sass/vendor/assets/javascripts/bootstrap/tooltip.js')
-    script(src='../bower_components/bootstrap-sass/vendor/assets/javascripts/bootstrap/modal.js')
-    script(src='../bower_components/bootstrap-sass/vendor/assets/javascripts/bootstrap/transition.js')
-    script(src='../bower_components/bootstrap-sass/vendor/assets/javascripts/bootstrap/button.js')
-    script(src='../bower_components/bootstrap-sass/vendor/assets/javascripts/bootstrap/popover.js')
-    script(src='../bower_components/bootstrap-sass/vendor/assets/javascripts/bootstrap/carousel.js')
-    script(src='../bower_components/bootstrap-sass/vendor/assets/javascripts/bootstrap/scrollspy.js')
-    script(src='../bower_components/bootstrap-sass/vendor/assets/javascripts/bootstrap/collapse.js')
-    script(src='../bower_components/bootstrap-sass/vendor/assets/javascripts/bootstrap/tab.js')
+    script(src='../bower_components/bootstrap-sass/assets/javascripts/bootstrap/affix.js')
+    script(src='../bower_components/bootstrap-sass/assets/javascripts/bootstrap/alert.js')
+    script(src='../bower_components/bootstrap-sass/assets/javascripts/bootstrap/dropdown.js')
+    script(src='../bower_components/bootstrap-sass/assets/javascripts/bootstrap/tooltip.js')
+    script(src='../bower_components/bootstrap-sass/assets/javascripts/bootstrap/modal.js')
+    script(src='../bower_components/bootstrap-sass/assets/javascripts/bootstrap/transition.js')
+    script(src='../bower_components/bootstrap-sass/assets/javascripts/bootstrap/button.js')
+    script(src='../bower_components/bootstrap-sass/assets/javascripts/bootstrap/popover.js')
+    script(src='../bower_components/bootstrap-sass/assets/javascripts/bootstrap/carousel.js')
+    script(src='../bower_components/bootstrap-sass/assets/javascripts/bootstrap/scrollspy.js')
+    script(src='../bower_components/bootstrap-sass/assets/javascripts/bootstrap/collapse.js')
+    script(src='../bower_components/bootstrap-sass/assets/javascripts/bootstrap/tab.js')
     // endbuild
 
     // build:js scripts/main.js

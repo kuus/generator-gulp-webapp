@@ -22,34 +22,34 @@
     "url": "https://bitbucket.org/kuus/<%- name %>"
   },
   "engines": {
-    "node": ">=0.12.0"
+    "node": ">=4"
   },
   "devDependencies": {
     "autoprefixer": "^6.3.3",
     "babel-core": "^6.4.0",
     "babel-preset-es2015": "^6.3.13",
     "babel-register": "^6.5.2",
-    "browser-sync": "^2.11.1",
+    "browser-sync": "^2.2.1",
     "css-mqpacker": "^4.0.0",
-    "del": "^1.1.1",<% if (useTemplateLanguage) { %>
+    "del": "^2.2.0",<% if (useTemplateLanguage) { %>
     "extend": "^3.0.0",<% } %>
     "gulp": "^3.9.0",<% if (includeBabel) { %>
     "gulp-babel": "^6.1.1",<% } %>
     "gulp-base64": "^0.1.3",
-    "gulp-cache": "^0.4.2",
+    "gulp-cache": "^0.4.5",
     "gulp-cssnano": "^2.1.1",<% if (useTemplateLanguage) { %>
     "gulp-data": "^1.2.1",<% } %>
-    "gulp-eslint": "^0.13.2",
-    "gulp-htmlmin": "^1.3.0",
+    "gulp-eslint": "^2.0.0",
+    "gulp-htmlmin": "^2.0.0",
     "gulp-if": "^2.0.0",
-    "gulp-imagemin": "^2.4.0",<% if (useJade) { %>
+    "gulp-imagemin": "^3.0.1",<% if (useJade) { %>
     "gulp-jade": "^1.1.0",<% } %>
-    "gulp-load-plugins": "^1.2.0",<% if (includeModernizr) { %>
-    "gulp-modernizr": "^0.0.0",<% } %><% if (useNunjucks) { %>
+    "gulp-load-plugins": "^1.2.4",<% if (includeModernizr) { %>
+    "gulp-modernizr": "^1.0.0",<% } %><% if (useNunjucks) { %>
     "gulp-nunjucks-render": "2.0.0",<% } %>
-    "gulp-postcss": "^6.1.0",
+    "gulp-postcss": "^6.1.1",
     "gulp-plumber": "^1.0.1",
-    "gulp-prettify": "^0.4.0",
+    "gulp-prettify": "^0.5.0",
     "gulp-rename": "^1.2.2",
     "gulp-replace": "^0.5.4",
     "gulp-sass": "^2.2.0",<% if (deploy === 'sftp') { %>
