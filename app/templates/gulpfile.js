@@ -208,7 +208,7 @@ gulp.task('serve', ['styles', 'scripts', 'fonts'], () => {
 <% } -%>
     'app/scripts/**/*.js',
     'app/images/**/*',
-    '.tmp/fonts/*.*'
+    '.tmp/fonts/**/*'
   ]).on('change', reload);
 
 <% if (useTemplateLanguage) { -%>
@@ -296,7 +296,7 @@ gulp.task('build', ['clean'], () => {
 gulp.task('default', ['serve']);
 
 <% if (useTemplateLanguage) { -%>
-gulp.task('views', ['wiredep'], () => {
+gulp.task('views', () => {
   var extend = require('extend');
   var fs = require('fs');
   var path = require('path');
