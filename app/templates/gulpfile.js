@@ -173,7 +173,8 @@ gulp.task('extras', () => {
 <% if (!useTemplateLanguage) { -%>
     '!app/*.html',
 <% } else { -%>
-    '!app/*.<%= tplLangExt %>'
+    '!app/*.<%= tplLangExt %>',
+    '!app/layouts'
 <% } -%>
   ], {
     dot: true
