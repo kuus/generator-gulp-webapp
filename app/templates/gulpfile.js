@@ -132,7 +132,7 @@ const jsOptimization = lazypipe()
 
 const htmlOptimization = lazypipe()
   .pipe(() => {
-    return $.if(MINIFY_HTML, $.htmlmin({ removeComments: true, loose: true, minifyJS: true, minifyCSS: true, collapseWhitespace: true }), $.prettify({ indent_size: 2, extra_liners: [] }));
+    return $.if(MINIFY_HTML, $.htmlmin({ removeComments: true, loose: false, minifyJS: true, minifyCSS: true, collapseWhitespace: true }), $.prettify({ indent_size: 2, extra_liners: [] }));
   });
 
 <% if (useTemplateLanguage) { -%>
