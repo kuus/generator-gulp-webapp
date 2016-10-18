@@ -31,7 +31,20 @@ const banner = tpl([
   ' */\n'
 ].join('\n'))({ pkg: pkg });
 
-gulp.task('styles', () => {
+// Public tasks
+gulp.task('serve', gulp.series(gulp.parallel(<% if (useTemplateLanguage) { -%>views, <% } -%>styles, scripts, fonts), watch));
+gulp.task('build', gulp.series(clean, gulp.parallel(lint, images, fonts, extras<% if (includeBabel || useAngular1) { -%>, scripts<% } -%>, styles<% if (useTemplateLanguage) { -%>, views<% } -%>), html, optimize, info));
+gulp.task('build').description = 'an example of build task: `$ gulp build --dist htmlmin,static,inline`';
+gulp.task('default');
+gulp.task(serveDist);
+gulp.task(serveTest<% if (includeBabel) { -%> gulp.task(scripts)<% } -%>);
+gulp.task(deploy);
+gulp.task(clean);
+gulp.task(info);
+
+// Private tasks
+
+function styles () {
   return gulp.src('app/styles/*.scss')
     .pipe($.plumber())
     .pipe($.sourcemaps.init())
@@ -53,11 +66,11 @@ gulp.task('styles', () => {
     .pipe($.if(IS_DIST, $.replace(LICENSE_PLACEHOLDER, banner)))
     .pipe($.sourcemaps.write())
     .pipe(gulp.dest('.tmp/styles'))
-    .pipe($.if(IS_DIST, cssOptimization('/styles')()))
+    .pipe($.if(IS_DIST, manageCss('/styles')()))
     .pipe(reload({stream: true}));
-});
+}
 
-gulp.task('scripts', () => {
+function scripts () {
 <% if (includeModernizr) { -%>
   var modernizrConf = require('./app/scripts/modernizr.json');
   delete modernizrConf.dest;
@@ -81,7 +94,7 @@ gulp.task('scripts', () => {
 <% if (includeBabel) { -%>
     .pipe(reload({stream: true}));
 <% } -%>
-});
+}
 
 function lint(files, options) {
   return gulp.src(files)
@@ -91,14 +104,15 @@ function lint(files, options) {
     .pipe($.if(!browserSync.active, $.eslint.failAfterError()));
 }
 
-gulp.task('lint', () => {
-  return lint('app/scripts/**/*.js', {
-    fix: true
-  })
+function lint () {
+  return _lintBase('app/scripts/**/*.js', {
+      fix: true
+    })
     .pipe(gulp.dest('app/scripts'));
-});
-gulp.task('lint:test', () => {
-  return lint('test/spec/**/*.js', {
+}
+
+function lintTest () {
+  return _lintBase('test/spec/**/*.js', {
     fix: true,
     env: {
 <% if (testFramework === 'mocha') { -%>
@@ -109,9 +123,9 @@ gulp.task('lint:test', () => {
     }
   })
     .pipe(gulp.dest('test/spec'));
-});
+}
 
-function cssOptimization (path) {
+function manageCss (path) {
   return lazypipe()<% if (includeUncss) { -%>
     .pipe(() => {
       return $.if(UNCSS, $.uncss({
@@ -127,7 +141,7 @@ function cssOptimization (path) {
     .pipe(gulp.dest, 'dist-static' + path);
 }
 
-function jsOptimization () {
+function manageJs () {
   // https://github.com/mishoo/UglifyJS2#the-simple-way
   var uglifyOpts = {
     preserveComments: 'license', // 'some'
@@ -157,153 +171,42 @@ function jsOptimization () {
     .pipe(gulp.dest, 'dist-static');
 }
 
-function htmlOptimization () {
+function manageHTML () {
   return lazypipe()
     .pipe(() => {
       return $.if(MINIFY_HTML, $.htmlmin({ removeComments: true, loose: false, minifyJS: true, minifyCSS: true, collapseWhitespace: true<% if (useAngular1) { -%>, processScripts: ['text/ng-template']<% } -%> }), $.prettify({ indent_size: 2, extra_liners: [] }));
     });
 }
 
-<% if (useTemplateLanguage) { -%>
-gulp.task('_html', ['styles', 'scripts', 'views'], () => {
-  return gulp.src(['app/*.html', '.tmp/*.html'])
-<% } else { -%>
-<% if (includeBabel || useAngular1) { -%>
-gulp.task('_html', ['styles', 'scripts'], () => {
-  return gulp.src('app/*.html')
-<% } else { -%>
-gulp.task('_html', ['styles'], () => {
-  return gulp.src('app/*.html')
-<% } -%>
-<% } -%>
-    .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))
-    .pipe($.if('*.css', cssOptimization()))
-    .pipe($.if('*.js', jsOptimization()))
-    .pipe($.if('*.html', htmlOptimization()))
-    .pipe($.if('*.html', gulp.dest('dist')));
-});
-
-gulp.task('html', ['_html'], () => {
-  return gulp.src('dist/*.html')
-    .pipe($.if(INLINE_EVERYTHING, $.inlineSource()))
-    .pipe($.if(CACHE_BUST, $.cacheBust()))
-    .pipe(gulp.dest('dist'));
-});
-
-gulp.task('images', () => {
+function images () {
   return gulp.src('app/images/**/*')
     .pipe($.cache($.imagemin()))
     .pipe(gulp.dest('dist/images'));
-});
+}
 
-gulp.task('fonts', () => {
+function fonts () {
   return gulp.src(require('main-bower-files')('**/*.{eot,svg,ttf,woff,woff2}', (err) => {})
     .concat('app/fonts/**/*'))
     .pipe(gulp.dest('.tmp/fonts'))
     .pipe(gulp.dest('dist/fonts'));
-});
+}
 
-gulp.task('extras', () => {
+function extras () {
   return gulp.src([
-    'app/*',
 <% if (!useTemplateLanguage) { -%>
     '!app/*.html',
 <% } else { -%>
     '!app/*.<%= tplLangExt %>',
     '!app/layouts'
 <% } -%>
+    'app/data/**/*.json'
   ], {
-    dot: true
+    dot: true,
+    base: 'app'
   }).pipe(gulp.dest('dist'));
-});
+}
 
-gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
-
-<% if (useTemplateLanguage) { -%>
-gulp.task('serve', ['views', 'styles', 'scripts', 'fonts'], () => {
-<% } else { -%>
-gulp.task('serve', ['styles', 'scripts', 'fonts'], () => {
-<% } -%>
-  browserSync({
-    notify: false,
-    port: 9000,
-    open: (!!argv.o || !!argv.open) || false,
-    server: {
-      baseDir: ['.tmp', 'app'],
-      routes: {
-        '/bower_components': 'bower_components'
-      }
-    }
-  });
-
-  // watch for changes
-  gulp.watch([
-<% if (!useTemplateLanguage) { -%>
-    'app/*.html',
-<% } if (useTemplateLanguage) { -%>
-    '.tmp/*.html',
-<% } -%>
-    'app/scripts/**/*.js',
-    'app/images/**/*',
-    '.tmp/fonts/**/*'
-  ]).on('change', reload);
-
-<% if (useTemplateLanguage) { -%>
-  gulp.watch(['app/data/*.json', 'app/*.<%= tplLangExt %>', 'app/layouts/**/*.<%= tplLangExt %>'], ['views', reload]);
-<% } -%>
-  gulp.watch('app/styles/**/*.scss', ['styles']);
-<% if (includeBabel) { -%>
-  gulp.watch('app/scripts/**/*.js', ['scripts']);
-<% } -%>
-<% if (includeModernizr) { -%>
-  gulp.watch('app/scripts/modernizr.json', ['scripts']);
-<% } -%>
-  gulp.watch('app/fonts/*.*', ['fonts']);
-  gulp.watch('bower.json', ['wiredep', 'fonts']);
-});
-
-gulp.task('serve:dist', () => {
-  browserSync({
-    notify: false,
-    open: (!!argv.o || !!argv.open) || false,
-    port: 9000,
-    server: {
-      baseDir: ['dist']
-    }
-  });
-});
-
-<% if (includeBabel) { -%>
-gulp.task('serve:test', ['scripts'], () => {
-<% } else { -%>
-gulp.task('serve:test', () => {
-<% } -%>
-  browserSync({
-    notify: false,
-    port: 9000,
-    ui: false,
-    server: {
-      baseDir: 'test',
-      routes: {
-<% if (includeBabel) { -%>
-        '/scripts': '.tmp/scripts',
-<% } else { -%>
-        '/scripts': 'app/scripts',
-<% } -%>
-        '/bower_components': 'bower_components'
-      }
-    }
-  });
-
-<% if (includeBabel) { -%>
-  gulp.watch('app/scripts/**/*.js', ['scripts']);
-<% } -%>
-  gulp.watch('test/spec/**/*.js').on('change', reload);
-  gulp.watch('test/spec/**/*.js', ['lint:test']);
-});
-
-// inject bower components
-gulp.task('wiredep', () => {
+function injectVendors () {
   gulp.src('app/styles/*.scss')
     .pipe(wiredep({
 <% if (includeBootstrap) { -%>
@@ -319,26 +222,10 @@ gulp.task('wiredep', () => {
       ignorePath: /^(\.\.\/)*\.\./
     }))
     .pipe(gulp.dest('app'));
-});
-
-gulp.task('__build', ['lint', 'html', 'images', 'fonts', 'extras'], () => {
-  return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
-});
-
-
-gulp.task('_build', ['clean'], () => {
-  gulp.start('__build');
-});
-
-// an example of build task: `$ gulp build -dist htmlmin,static,inline<%= includeUncss ? ',uncss' : '' -%>`
-gulp.task('build', ['_build'], () => {
-  gulp.start('info');
-});
-
-gulp.task('default', ['serve']);
+}
 
 <% if (useTemplateLanguage) { -%>
-gulp.task('views', () => {
+function views () {
   var extend = require('extend');
   var fs = require('fs');
   var path = require('path');
@@ -363,11 +250,158 @@ gulp.task('views', () => {
     }))
 <% } -%>
     .pipe(gulp.dest('.tmp'));
-});
+}
 <% } -%>
-<% if (deploy) { -%>
 
-gulp.task('deploy', () => {
+function info () {
+  var info = ['',
+    'Repository: <%- data.repo %>',
+    '',
+    'Pages Preview<% data.pages.forEach(function (page) { %>',
+    '  <%- page.title %>: <%- page.url %>',
+    '<% }) %>',
+    'Static Files Sources',
+    '  Styles: <%- data.pathStaticStyles %>',
+    '  Scripts: <%- data.pathStaticScripts %>',
+    '',
+    'Data Source',
+    '  Styles: <%- data.pathData %>'
+  ].join('\n');
+  var pathRepo = pkg.repository.url;
+  var pathMaster = pathRepo + '/tree/master';
+  var path = require('path');
+  var fs = require('fs');
+  var filterExt = /\.html$/;
+  var capitalize = function (s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  };
+  // @credit http://stackoverflow.com/a/25462405/1938970
+  var fromDir = function (startPath, filter, callback) {
+    if (!fs.existsSync(startPath)) {
+      $.util.log($.util.colors.bgMagenta('no dir: "' + startPath + '"'));
+      return;
+    }
+    var files = fs.readdirSync(startPath);
+    for (var i = 0; i < files.length; i++) {
+      var filename = path.join(startPath,files[i]);
+      var stat = fs.lstatSync(filename);
+      if (stat.isDirectory()){
+        fromDir(filename, filter, callback);
+      }
+      else if (filter.test(filename)) {
+        callback(files[i]);
+      }
+    }
+  };
+  var getPages = function () {
+    var pages = [];
+    fromDir('dist', filterExt, function (filename) {
+      var title;
+      var url;
+      if (filename === 'index.html') {
+        title = 'Home';
+        url = pkg.repository.preview;
+      } else {
+        title = capitalize(filename.replace(filterExt, ''));
+        url = pkg.repository.preview + filename;
+      }
+      pages.push({ title: title, url: url });
+    });
+    return pages;
+  };
+  var data = {
+    repo: pathRepo,
+    pages: getPages(),
+    pathStaticStyles: pathMaster + '/dist-static/styles',
+    pathStaticScripts: pathMaster + '/dist-static/scripts',
+    pathData: pathMaster + '/styles'
+  };
+
+  $.util.log($.util.colors.green((tpl(info)({ data: data }))));
+
+  return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
+}
+
+function html () {
+<% if (useTemplateLanguage) { -%>
+  return gulp.src(['app/*.html', '.tmp/*.html'])
+<% } else { -%>
+  return gulp.src('app/*.html')
+<% } -%>
+    .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))
+    .pipe($.if('*.css', manageCss('')()))
+    .pipe($.if('*.js', manageJs()()))
+    .pipe($.if('*.html', manageHTML()()))
+    .pipe($.if('*.html', gulp.dest('dist')));
+}
+
+function optimize () {
+  return gulp.src('dist/*.html')
+    .pipe($.if(INLINE_EVERYTHING, $.inlineSource()))
+    .pipe($.if(CACHE_BUST, $.cacheBust()))
+    .pipe(gulp.dest('dist'));
+}
+
+function clean () {
+  return del.bind(null, ['.tmp', 'dist'])();
+}
+
+function server (baseDir, routes) {
+  browserSync({
+    notify: false,
+    port: 9000,
+    open: (!!argv.o || !!argv.open) || false,
+    server: {
+      baseDir: baseDir,
+      routes: routes
+    }
+  });
+}
+
+function watch () {
+  server(['.tmp', 'app'], { '/bower_components': 'bower_components' });
+
+  // watch for changes
+  gulp.watch([
+<% if (!useTemplateLanguage) { -%>
+    'app/*.html',
+<% } if (useTemplateLanguage) { -%>
+    '.tmp/*.html',
+<% } -%>
+    'app/scripts/**/*.js',
+    'app/images/**/*',
+    '.tmp/fonts/**/*'
+  ]).on('change', reload);
+
+<% if (useTemplateLanguage) { -%>
+  gulp.watch(['app/data/*.json', 'app/*.<%= tplLangExt %>', 'app/layouts/**/*.<%= tplLangExt %>']).on('all', gulp.parallel(views, reload));
+<% } -%>
+  gulp.watch('app/styles/**/*.scss').on('all', styles);
+<% if (includeBabe || useAngular1) { -%>
+  gulp.watch('app/scripts/**/*.json').on('all', scripts);
+<% } -%>
+<% if (includeModernizr) { -%>
+  gulp.watch('app/scripts/modernizr.json').on('all', scripts);
+<% } -%>
+  gulp.watch('app/fonts/*.*').on('all', fonts);
+  gulp.watch('bower.json').on('all', gulp.parallel(injectVendors, fonts));
+}
+
+function serveDist() {
+  server('dist');
+}
+
+function serveTest() {
+  server('test', {<% if (includeBabel) { -%>'/scripts': '.tmp/scripts',<% } else { -%>'/scripts': 'app/scripts',<% } -%> '/bower_components': 'bower_components' });
+  gulp.watch('test/spec/**/*.js').on('change', reload);
+  gulp.watch('test/spec/**/*.js').on('all', lintTest);
+<% if (includeBabel) { -%>
+  gulp.watch('app/scripts/**/*.js').on('change', scripts);
+<% } -%>
+}
+
+<% if (deploy) { -%>
+function deploy () {
   var secrets = require('../secrets.json');
 <% if (deploy === 'ftp') { -%>
   var ftp = require('vinyl-ftp');
@@ -394,69 +428,6 @@ gulp.task('deploy', () => {
     .pipe(conn.newer('/public_html/<%= name %>'))
     .pipe(conn.dest('/public_html/<%= name %>'));
 <% } -%>
-});
+}
+
 <% } -%>
-
-gulp.task('info', () => {
-  var info = [
-    'Repository: <%- data.repo %>',
-    '',
-    'Pages Preview<% data.pages.forEach(function (page) { %>',
-    '  <%- page.title %>: <%- page.url %>',
-    '<% }) %>',
-    'Static Files Sources',
-    '  Styles: <%- data.pathStaticStyles %>',
-    '  Scripts: <%- data.pathStaticScripts %>',
-    '',
-    'Data Source',
-    '  Styles: <%- data.pathData %>'
-  ].join('\n');
-  var pathRepo = pkg.repository.url;
-  var pathMaster = pathRepo + '/tree/master';
-  var path = require('path');
-  var fs = require('fs');
-  var filterExt = /\.html$/;
-  var getPages = function () {
-    var capitalizeFirstLetter = function (string) {
-      return string.charAt(0).toUpperCase() + string.slice(1);
-    };
-    var fromDir = function (startPath, filter, callback) {
-      if (!fs.existsSync(startPath)) {
-        console.log("no dir ",startPath);
-        return;
-      }
-      var files = fs.readdirSync(startPath);
-      for (var i = 0; i < files.length; i++) {
-        var filename = path.join(startPath,files[i]);
-        var stat = fs.lstatSync(filename);
-        if (stat.isDirectory()){
-          fromDir(filename, filter, callback);
-        }
-        else if (filter.test(filename)) callback(files[i]);
-      }
-    };
-    var pages = [];
-    fromDir('dist', filterExt, function (filename) {
-      var title;
-      var url;
-      if (filename === 'index.html') {
-        title = 'Home';
-        url = pkg.repository.preview;
-      } else {
-        title = capitalizeFirstLetter(filename.replace(filterExt, ''));
-        url = pkg.repository.preview + filename;
-      }
-      pages.push({ title: title, url: url });
-    });
-    return pages;
-  };
-  var data = {
-    repo: pathRepo,
-    pages: getPages(),
-    pathStaticStyles: pathMaster + '/dist-static/styles',
-    pathStaticScripts: pathMaster + '/dist-static/scripts',
-    pathData: pathMaster + '/styles'
-  };
-
-  $.util.log($.util.colors.green((tpl(info)({ data: data }))));
-});
