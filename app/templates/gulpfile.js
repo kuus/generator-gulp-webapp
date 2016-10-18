@@ -96,7 +96,7 @@ function scripts () {
 <% } -%>
 }
 
-function lint(files, options) {
+function _lintBase(files, options) {
   return gulp.src(files)
     .pipe(reload({stream: true, once: true}))
     .pipe($.eslint(options))
