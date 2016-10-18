@@ -255,17 +255,17 @@ function views () {
 
 function info () {
   var info = ['',
-    'Repository: <%- data.repo %>',
+    'Repository: <@%- data.repo %@>',
     '',
-    'Pages Preview<% data.pages.forEach(function (page) { %>',
-    '  <%- page.title %>: <%- page.url %>',
-    '<% }) %>',
+    'Pages Preview<@% data.pages.forEach(function (page) { %@>',
+    '  <@%- page.title %>: <@%- page.url %@>',
+    '<@% }) %@>',
     'Static Files Sources',
-    '  Styles: <%- data.pathStaticStyles %>',
-    '  Scripts: <%- data.pathStaticScripts %>',
+    '  Styles: <@%- data.pathStaticStyles %@>',
+    '  Scripts: <@%- data.pathStaticScripts %@>',
     '',
     'Data Source',
-    '  Styles: <%- data.pathData %>'
+    '  Styles: <@%- data.pathData %@>'
   ].join('\n');
   var pathRepo = pkg.repository.url;
   var pathMaster = pathRepo + '/tree/master';
@@ -377,7 +377,7 @@ function watch () {
   gulp.watch(['app/data/*.json', 'app/*.<%= tplLangExt %>', 'app/layouts/**/*.<%= tplLangExt %>']).on('all', gulp.parallel(views, reload));
 <% } -%>
   gulp.watch('app/styles/**/*.scss').on('all', styles);
-<% if (includeBabe || useAngular1) { -%>
+<% if (includeBabel || useAngular1) { -%>
   gulp.watch('app/scripts/**/*.json').on('all', scripts);
 <% } -%>
 <% if (includeModernizr) { -%>

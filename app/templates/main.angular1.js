@@ -7,8 +7,8 @@ angular.module('app', [<% if (includeBootstrap) { %>
     'ui.bootstrap'
   <% } %>])<% if (useNunjucks) { %>
   .config(function ($interpolateProvider) {
-    $interpolateProvider.startSymbol('<%{');
-    $interpolateProvider.endSymbol('}%>');
+    $interpolateProvider.startSymbol('<@%{');
+    $interpolateProvider.endSymbol('}%@>');
   })<% } %>
   /**
    * App controller
