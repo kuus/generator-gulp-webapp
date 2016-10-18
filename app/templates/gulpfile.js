@@ -53,6 +53,7 @@ gulp.task('styles', () => {
     .pipe($.if(IS_DIST, $.replace(LICENSE_PLACEHOLDER, banner)))
     .pipe($.sourcemaps.write())
     .pipe(gulp.dest('.tmp/styles'))
+    .pipe($.if(IS_DIST, cssOptimization('/styles')()))
     .pipe(reload({stream: true}));
 });
 
@@ -73,6 +74,8 @@ gulp.task('scripts', () => {
     .pipe($.sourcemaps.init())
     .pipe($.babel())
     .pipe($.sourcemaps.write('.'))
+<% } if (useAngular1) { -%>
+    .pipe($.ngAnnotate())
 <% } -%>
     .pipe(gulp.dest('.tmp/scripts'))
 <% if (includeBabel) { -%>
@@ -108,42 +111,64 @@ gulp.task('lint:test', () => {
     .pipe(gulp.dest('test/spec'));
 });
 
-const cssOptimization = lazypipe()
-<% if (includeUncss) { -%>
-  .pipe(() => {
-    return $.if(UNCSS, $.uncss({
-      html: ['app/*.html', '.tmp/*.html'],
-      ignoreSheets: '/bower_components/g'
-    }));
-  })
+function cssOptimization (path) {
+  return lazypipe()<% if (includeUncss) { -%>
+    .pipe(() => {
+      return $.if(UNCSS, $.uncss({
+        html: ['app/*.html', '.tmp/*.html'],
+        ignoreSheets: '/bower_components/g'
+      }));
+    })
 <% } -%>
-  .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
-  .pipe($.cssnano, { safe: true, autoprefixer: false })
-  .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist')); })
-  .pipe(() => { return $.if(DIST_STATIC, $.rename({ suffix: '.min' })); })
-  .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
+    .pipe(gulp.dest, 'dist-static' + path)
+    .pipe($.cssnano, { safe: true, autoprefixer: false })
+    .pipe(gulp.dest, 'dist' + path)
+    .pipe($.rename, { suffix: '.min' })
+    .pipe(gulp.dest, 'dist-static' + path);
+}
 
-const jsOptimization = lazypipe()
-  .pipe(() => { return $.if(DIST_STATIC, $.replace(LICENSE_PLACEHOLDER, banner)); })
-  .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })<% if (useAngular1) { -%>
-  .pipe($.ngAnnotate)
+function jsOptimization () {
+  // https://github.com/mishoo/UglifyJS2#the-simple-way
+  var uglifyOpts = {
+    preserveComments: 'license', // 'some'
+    outSourceMap: true,
+    toplevel: true,
+    mangle: true,
+    compress: {
+      unsafe: true,
+      drop_console: true,
+      global_defs: {
+        DEBUG: false
+      }
+    },
+    mangleProperties: {
+      regex: /^_(?!format|default|value|toggleActive|process)(.+)/,
+    }
+  };
+  return lazypipe()
+    .pipe($.replace, LICENSE_PLACEHOLDER, banner)
+    .pipe(gulp.dest, 'dist-static')<% if (useAngular1) { -%>
+    .pipe($.ngAnnotate)
 <% } -%>
-  .pipe($.uglify, { preserveComments: 'some', compress: { drop_console: true } })
-  .pipe($.replace, LICENSE_PLACEHOLDER, banner)
-  .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist')); })
-  .pipe(() => { return $.if(DIST_STATIC, $.rename({ suffix: '.min' })); })
-  .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
+    .pipe($.uglify, uglifyOpts)
+    .pipe($.replace, LICENSE_PLACEHOLDER, banner)
+    .pipe(gulp.dest, 'dist')
+    .pipe($.rename, { suffix: '.min' })
+    .pipe(gulp.dest, 'dist-static');
+}
 
-const htmlOptimization = lazypipe()
-  .pipe(() => {
-    return $.if(MINIFY_HTML, $.htmlmin({ removeComments: true, loose: false, minifyJS: true, minifyCSS: true, collapseWhitespace: true<% if (useAngular1) { -%>, processScripts: ['text/ng-template']<% } -%> }), $.prettify({ indent_size: 2, extra_liners: [] }));
-  });
+function htmlOptimization () {
+  return lazypipe()
+    .pipe(() => {
+      return $.if(MINIFY_HTML, $.htmlmin({ removeComments: true, loose: false, minifyJS: true, minifyCSS: true, collapseWhitespace: true<% if (useAngular1) { -%>, processScripts: ['text/ng-template']<% } -%> }), $.prettify({ indent_size: 2, extra_liners: [] }));
+    });
+}
 
 <% if (useTemplateLanguage) { -%>
 gulp.task('_html', ['styles', 'scripts', 'views'], () => {
   return gulp.src(['app/*.html', '.tmp/*.html'])
 <% } else { -%>
-<% if (includeBabel) { -%>
+<% if (includeBabel || useAngular1) { -%>
 gulp.task('_html', ['styles', 'scripts'], () => {
   return gulp.src('app/*.html')
 <% } else { -%>
@@ -296,13 +321,18 @@ gulp.task('wiredep', () => {
     .pipe(gulp.dest('app'));
 });
 
-gulp.task('_build', ['lint', 'html', 'images', 'fonts', 'extras'], () => {
+gulp.task('__build', ['lint', 'html', 'images', 'fonts', 'extras'], () => {
   return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
 });
 
-// an example of build task: `$ gulp build -dist htmlmin,<%= includeUncss ? 'uncss' : '' -%>`
-gulp.task('build', ['clean'], () => {
-  gulp.start('_build');
+
+gulp.task('_build', ['clean'], () => {
+  gulp.start('__build');
+});
+
+// an example of build task: `$ gulp build -dist htmlmin,static,inline<%= includeUncss ? ',uncss' : '' -%>`
+gulp.task('build', ['_build'], () => {
+  gulp.start('info');
 });
 
 gulp.task('default', ['serve']);
@@ -366,3 +396,67 @@ gulp.task('deploy', () => {
 <% } -%>
 });
 <% } -%>
+
+gulp.task('info', () => {
+  var info = [
+    'Repository: <%- data.repo %>',
+    '',
+    'Pages Preview<% data.pages.forEach(function (page) { %>',
+    '  <%- page.title %>: <%- page.url %>',
+    '<% }) %>',
+    'Static Files Sources',
+    '  Styles: <%- data.pathStaticStyles %>',
+    '  Scripts: <%- data.pathStaticScripts %>',
+    '',
+    'Data Source',
+    '  Styles: <%- data.pathData %>'
+  ].join('\n');
+  var pathRepo = pkg.repository.url;
+  var pathMaster = pathRepo + '/tree/master';
+  var path = require('path');
+  var fs = require('fs');
+  var filterExt = /\.html$/;
+  var getPages = function () {
+    var capitalizeFirstLetter = function (string) {
+      return string.charAt(0).toUpperCase() + string.slice(1);
+    };
+    var fromDir = function (startPath, filter, callback) {
+      if (!fs.existsSync(startPath)) {
+        console.log("no dir ",startPath);
+        return;
+      }
+      var files = fs.readdirSync(startPath);
+      for (var i = 0; i < files.length; i++) {
+        var filename = path.join(startPath,files[i]);
+        var stat = fs.lstatSync(filename);
+        if (stat.isDirectory()){
+          fromDir(filename, filter, callback);
+        }
+        else if (filter.test(filename)) callback(files[i]);
+      }
+    };
+    var pages = [];
+    fromDir('dist', filterExt, function (filename) {
+      var title;
+      var url;
+      if (filename === 'index.html') {
+        title = 'Home';
+        url = pkg.repository.preview;
+      } else {
+        title = capitalizeFirstLetter(filename.replace(filterExt, ''));
+        url = pkg.repository.preview + filename;
+      }
+      pages.push({ title: title, url: url });
+    });
+    return pages;
+  };
+  var data = {
+    repo: pathRepo,
+    pages: getPages(),
+    pathStaticStyles: pathMaster + '/dist-static/styles',
+    pathStaticScripts: pathMaster + '/dist-static/scripts',
+    pathData: pathMaster + '/styles'
+  };
+
+  $.util.log($.util.colors.green((tpl(info)({ data: data }))));
+});
