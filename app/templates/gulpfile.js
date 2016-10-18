@@ -197,7 +197,7 @@ function extras () {
     '!app/*.html',
 <% } else { -%>
     '!app/*.<%= tplLangExt %>',
-    '!app/layouts'
+    '!app/layouts',
 <% } -%>
     'app/data/**/*.json'
   ], {
