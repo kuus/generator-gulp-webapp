@@ -318,11 +318,7 @@ gulp.task('views', () => {
         return data;
       }
     }))
-<% if (useJade) { -%>
-    .pipe($.jade({
-      pretty: true
-    }))
-<% } if (useNunjucks) { -%>
+<% if (useNunjucks) { -%>
     .pipe($.nunjucksRender({
       path: 'app'
     }))

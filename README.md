@@ -10,9 +10,9 @@ Fork of `generator-webapp`, see [original repo](https://github.com/yeoman/genera
 
 ## Diff from original
  - Does not prompt for project name, it grabs it from the root folder name
- - Template language choice between `nunjucks` ([docs](https://mozilla.github.io/nunjucks/)), `jade` ([docs](http://jade-lang.com/)) and `none`.
+ - Template language `nunjucks` ([docs](https://mozilla.github.io/nunjucks/)).
  - When a template language is used you can store content data outside the templates (in `data/` folder to mimic real data from DB.
- - Implement a basic template inheritance pattern through `nunjucks` and `jade`.
+ - Implement a basic template inheritance pattern through `nunjucks`.
  - Include only the desired Bootstrap scss components.
  - Inline small images and svg fonts in css (only with `-dist` arg), with [gulp-base64](https://www.npmjs.com/package/gulp-base64)
  - Combine media queries in css, with [css-mqpacker](https://www.npmjs.com/package/css-mqpacker).
@@ -29,7 +29,7 @@ Fork of `generator-webapp`, see [original repo](https://github.com/yeoman/genera
  - Populate the `_dummy.json` somehow, maybe with harcoded data or with some node module.
  - The data.json for each page, so for instance `index.json` might be a template that generates a custom json for that specific page.
  - Maybe use some remote mocked js API.
- - Do a generator for a new page, it will create a `pagename.(html,njk,jade)` file in the root, a corresponding `data/pagename.json` with content data and a `style/page--pagename.scss` module.
+ - Do a generator for a new page, it will create a `pagename.(html,njk)` file in the root, a corresponding `data/pagename.json` with content data and a `style/page--pagename.scss` module.
 
 ## License
 

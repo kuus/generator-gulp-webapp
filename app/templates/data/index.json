@@ -2,9 +2,6 @@
   "features" : [<% if (useNunjucks) { %>{
       "title" : "Nunjucks templates",
       "description" : "A Node.js and Browser-based JavaScript Template Engine"
-    }, <% } if (useJade) { %>{
-      "title" : "Jade templates",
-      "description" : "Robust, elegant, feature rich template engine for nodejs"
     }, <% } %>{
       "title" : "HTML5 Boilerplate",
       "description" : "HTML5 Boilerplate is a professional front-end template for building fast, robust, and adaptable web apps or sites."

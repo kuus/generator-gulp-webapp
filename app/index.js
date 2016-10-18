@@ -93,10 +93,6 @@ module.exports = generators.Base.extend({
         value: 'njk',
         checked: true
       }, {
-        name: 'Jade',
-        value: 'jade',
-        checked: false
-      }, {
         name: 'None',
         value: 'html',
         checked: false
@@ -158,7 +154,6 @@ module.exports = generators.Base.extend({
         includeUncss: hasFeature('includeUncss'),
         useTemplateLanguage: answers.templating !== 'html',
         useNunjucks: answers.templating === 'njk',
-        useJade: answers.templating === 'jade',
         tplLangExt: answers.templating,
         deploy: answers.deploy,
         name: appname,
