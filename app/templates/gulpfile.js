@@ -255,17 +255,17 @@ function views () {
 
 function info () {
   var info = ['',
-    'Repository: <%- data.repo %>',
+    'Repository: <@%- data.repo %@>',
     '',
-    'Pages Preview<% data.pages.forEach(function (page) { %>',
-    '  <%- page.title %>: <%- page.url %>',
-    '<% }) %>',
+    'Pages Preview<@% data.pages.forEach(function (page) { %@>',
+    '  <@%- page.title %>: <@%- page.url %@>',
+    '<@% }) %@>',
     'Static Files Sources',
-    '  Styles: <%- data.pathStaticStyles %>',
-    '  Scripts: <%- data.pathStaticScripts %>',
+    '  Styles: <@%- data.pathStaticStyles %@>',
+    '  Scripts: <@%- data.pathStaticScripts %@>',
     '',
     'Data Source',
-    '  Styles: <%- data.pathData %>'
+    '  Styles: <@%- data.pathData %@>'
   ].join('\n');
   var pathRepo = pkg.repository.url;
   var pathMaster = pathRepo + '/tree/master';
