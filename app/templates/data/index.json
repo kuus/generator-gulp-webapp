@@ -8,6 +8,9 @@
     }, <% if (includeBootstrap) { %>{
       "title" : "Bootstrap",
       "description" : "Sleek, intuitive, and powerful mobile first front-end framework for faster and easier web development."
+    }, <% if (useAngular) { %>{
+      "title" : "Angular",
+      "description" : "A development platform for building mobile and desktop web applications"
     }, <% } if (includeModernizr) { %>{
       "title" : "Modernizr",
       "description" : "Modernizr is an open-source JavaScript library that helps you build the next generation of HTML5 and CSS3-powered websites."

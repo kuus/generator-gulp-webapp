@@ -23,7 +23,7 @@ Fork of `generator-webapp`, see [original repo](https://github.com/yeoman/genera
  - To build the `dist` version you need to pass an argument to the command, so: `$ gulp build -dist htmlmin,uncss`, where `htmlmin` and `uncss` (to clean unneded css with [gulp-uncss](https://www.npmjs.com/package/gulp-uncss)) are optional.
  - The HTML produced by the `$ gulp build -dist` task is by default prettified with [gulp-prettify](https://www.npmjs.com/package/gulp-prettify), passing the `htmlmin` arg it gets instead minified by [gulp-htmlmin](https://www.npmjs.com/package/gulp-htmlmin)
  - Option `static` to include styles and scripts minified and unminified in the folder `./dist-static`, use it like this: `$ gulp build -dist static`
- - Javascript file `main.js` wrapped in a [IIFE](http://benalman.com/news/2010/11/immediately-invoked-function-expression/)
+ - Javascript file `app.js` (instead of `main.js`) wrapped in a [IIFE](http://benalman.com/news/2010/11/immediately-invoked-function-expression/)
 
 ## Todo
  - Populate the `_dummy.json` somehow, maybe with harcoded data or with some node module.

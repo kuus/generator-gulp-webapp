@@ -279,7 +279,7 @@ module.exports = generators.Base.extend({
     },
 
     styles: function () {
-      var css = 'main';
+      var css = 'app';
 
       if (this.app.includeSass) {
         css += '.scss';
@@ -302,13 +302,13 @@ module.exports = generators.Base.extend({
         );
       }
 
-      var tplPath = 'main.js';
+      var tplPath = 'app.js';
       if (this.app.useAngular1) {
-        tplPath = 'main.angular1.js';
+        tplPath = 'app.angular1.js';
       }
       this.fs.copyTpl(
         this.templatePath(tplPath),
-        this.destinationPath('app/scripts/main.js'),
+        this.destinationPath('app/scripts/app.js'),
         this.app
       );
 
