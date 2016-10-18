@@ -258,7 +258,7 @@ function info () {
     'Repository: <@%- data.repo %@>',
     '',
     'Pages Preview<@% data.pages.forEach(function (page) { %@>',
-    '  <@%- page.title %>: <@%- page.url %@>',
+    '  <@%- page.title %@>: <@%- page.url %@>',
     '<@% }) %@>',
     'Static Files Sources',
     '  Styles: <@%- data.pathStaticStyles %@>',
