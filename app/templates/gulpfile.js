@@ -35,7 +35,7 @@ const banner = tpl([
 gulp.task('serve', gulp.series(gulp.parallel(<% if (useTemplateLanguage) { -%>views, <% } -%>styles, scripts, fonts), watch));
 gulp.task('build', gulp.series(clean, gulp.parallel(lint, images, fonts, extras<% if (includeBabel || useAngular1) { -%>, scripts<% } -%>, styles<% if (useTemplateLanguage) { -%>, views<% } -%>), html, optimize, info));
 gulp.task('build').description = 'an example of build task: `$ gulp build --dist htmlmin,static,inline`';
-gulp.task('default');
+gulp.task('default', gulp.task('serve'));
 gulp.task(serveDist);
 gulp.task(serveTest<% if (includeBabel) { -%> gulp.task(scripts)<% } -%>);
 gulp.task(deploy);
