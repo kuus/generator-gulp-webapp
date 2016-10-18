@@ -163,7 +163,8 @@ module.exports = generators.Base.extend({
         generatedOn: new Date().toISOString().split('T')[0],
         generatorName: this.pkg.name,
         generatorVersion: this.pkg.version,
-        testFramework: this.options['test-framework']
+        testFramework: this.options['test-framework'],
+        ngBootstrapFileame: 'vendor--ui-bootstrap-custom-tpls-2.2.0.js'
       };
 
     }.bind(this));
@@ -310,6 +311,13 @@ module.exports = generators.Base.extend({
         this.destinationPath('app/scripts/main.js'),
         this.app
       );
+
+      if (this.app.useAngular1) {
+        this.fs.copyTpl(
+          this.templatePath(this.app.ngBootstrapFileame),
+          this.destinationPath('app/scripts/' + this.app.ngBootstrapFileame)
+        );
+      }
     },
 
     html: function () {
@@ -317,21 +325,25 @@ module.exports = generators.Base.extend({
 
       // path prefix for Bootstrap JS files
       if (this.app.includeBootstrap) {
-        this.app.bsPath = '/bower_components/';
-        this.app.bsPlugins = [
-          'affix',
-          'alert',
-          'dropdown',
-          'tooltip',
-          'modal',
-          'transition',
-          'button',
-          'popover',
-          'carousel',
-          'scrollspy',
-          'collapse',
-          'tab'
-        ];
+        if (this.app.useAngular1) {
+          this.app.bsPath = 'scripts/' + this.app.ngBootstrapFileame;
+        } else {
+          this.app.bsPath = '/bower_components/';
+          this.app.bsPlugins = [
+            'affix',
+            'alert',
+            'dropdown',
+            'tooltip',
+            'modal',
+            'transition',
+            'button',
+            'popover',
+            'carousel',
+            'scrollspy',
+            'collapse',
+            'tab'
+          ];
+        }
 
         if (this.app.includeSass) {
           this.app.bsPath += 'bootstrap-sass/assets/javascripts/bootstrap/';

@@ -1,5 +1,5 @@
-<!doctype html<% if (includeModernizr) { %> ng-app="app" ng-controller="AppCtrl"<% } %>>
-<html<% if (includeModernizr) { %> class="no-js"<% } %> lang="">
+<!doctype html<% if (useAngular1) { %> ng-app="app" ng-controller="AppCtrl"<% } %>>
+<html class="no-js" lang="">
   <head>
     <meta charset="utf-8">
     <meta name="description" content="">
@@ -92,7 +92,10 @@
 <% } -%>
     <!-- bower:js -->
     <!-- endbower -->
-<% if (includeBootstrap) { bsPlugins.forEach(function (plugin) { -%>
+<% if (useAngular1) { -%>
+    <script src="<%= bsPath %>"></script>
+<% } -%>
+<% if (includeBootstrap && !useAngular1) { bsPlugins.forEach(function (plugin) { -%>
     <script src="<%= bsPath + plugin %>.js"></script>
 <% }); } -%>
     <!-- endbuild -->
