@@ -18,7 +18,9 @@ const IS_DIST = !!argv.dist || !!argv.d;
 const UNCSS = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf('uncss') !== -1 : false;
 <% } -%>
 const MINIFY_HTML = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf('htmlmin') !== -1 : false;
+const INLINE_EVERYTHING = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf('inline') !== -1 : false;
 const DIST_STATIC = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf('static') !== -1 : false;
+const CACHE_BUST = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf('nobust') === -1 : true;
 const banner = tpl([
   '/*!',
   ' * <@%- pkg.config.namePretty %@> v<@%- pkg.version %@> (<@%- pkg.homepage %@>)',
@@ -138,14 +140,14 @@ const htmlOptimization = lazypipe()
   });
 
 <% if (useTemplateLanguage) { -%>
-gulp.task('html', ['styles', 'scripts', 'views'], () => {
+gulp.task('_html', ['styles', 'scripts', 'views'], () => {
   return gulp.src(['app/*.html', '.tmp/*.html'])
 <% } else { -%>
 <% if (includeBabel) { -%>
-gulp.task('html', ['styles', 'scripts'], () => {
+gulp.task('_html', ['styles', 'scripts'], () => {
   return gulp.src('app/*.html')
 <% } else { -%>
-gulp.task('html', ['styles'], () => {
+gulp.task('_html', ['styles'], () => {
   return gulp.src('app/*.html')
 <% } -%>
 <% } -%>
@@ -154,6 +156,13 @@ gulp.task('html', ['styles'], () => {
     .pipe($.if('*.js', jsOptimization()))
     .pipe($.if('*.html', htmlOptimization()))
     .pipe($.if('*.html', gulp.dest('dist')));
+});
+
+gulp.task('html', ['_html'], () => {
+  return gulp.src('dist/*.html')
+    .pipe($.if(INLINE_EVERYTHING, $.inlineSource()))
+    .pipe($.if(CACHE_BUST, $.cacheBust()))
+    .pipe(gulp.dest('dist'));
 });
 
 gulp.task('images', () => {

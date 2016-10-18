@@ -8,11 +8,11 @@
     <meta name="author" content="kuus <kunderikuus@gmail.com> (http://kunderikuus.net)">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     {# Place favicon.ico in the root directory #}
-    <!-- build:css styles/vendor.css-->
+    <!-- build:css styles/vendor.css inline-->
     <!-- bower:css-->
     <!-- endbower-->
     <!-- endbuild-->
-    <!-- build:css styles/main.css-->
+    <!-- build:css styles/main.css inline-->
     <link rel="stylesheet" href="styles/main.css">
     <!-- endbuild-->
   </head>
@@ -20,7 +20,7 @@
     {% block body %}
     {% endblock %}
     <script>(function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;e=o.createElement(i);r=o.getElementsByTagName(i)[0];e.src='https://www.google-analytics.com/analytics.js';r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));ga('create','UA-XXXXX-X');ga('send','pageview');</script>
-    <!-- build:js scripts/vendor.js-->
+    <!-- build:js scripts/vendor.js inline-->
 <% if (includeModernizr) { -%>
     <script src="scripts/modernizr.js"></script>
 <% } -%>
@@ -34,7 +34,7 @@
 <% }); } -%>
     <!-- endbuild-->
 
-    <!-- build:js scripts/main.js-->
+    <!-- build:js scripts/main.js inline-->
     <script src="scripts/main.js"></script>
     <!-- endbuild-->
   </body>
