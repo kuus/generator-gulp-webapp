@@ -72,6 +72,10 @@ module.exports = generators.Base.extend({
         value: 'includeModernizr',
         checked: true
       }, {
+        name: 'Angular 1',
+        value: 'useAngular1',
+        checked: false
+      }, {
         name: 'Babel',
         value: 'includeBabel',
         checked: false
@@ -148,6 +152,7 @@ module.exports = generators.Base.extend({
         includeSass: true, // no prompt for this
         includeBootstrap: hasFeature('includeBootstrap'),
         includeModernizr: hasFeature('includeModernizr'),
+        useAngular1: hasFeature('useAngular1'),
         includeJQuery: answers.includeJQuery,
         includeBabel: hasFeature('includeBabel'),
         includeUncss: hasFeature('includeUncss'),
@@ -221,7 +226,7 @@ module.exports = generators.Base.extend({
             'bootstrap-sass': {
               'main': [
                 'assets/stylesheets/_bootstrap.scss',
-                'assets/fonts/bootstrap/*',
+                // 'assets/fonts/bootstrap/*',
                 'assets/javascripts/bootstrap.js'
               ]
             }
@@ -233,14 +238,18 @@ module.exports = generators.Base.extend({
               'main': [
                 'less/bootstrap.less',
                 'dist/css/bootstrap.css',
-                'dist/js/bootstrap.js',
-                'dist/fonts/*'
+                'dist/js/bootstrap.js'
+                // 'dist/fonts/*'
               ]
             }
           };
         }
       } else if (this.app.includeJQuery) {
         bowerJson.dependencies['jquery'] = '~2.1.1';
+      }
+
+      if (this.app.useAngular1) {
+        bowerJson.dependencies['angular'] = '^1.5.8';
       }
 
       this.fs.writeJSON('bower.json', bowerJson);
@@ -296,9 +305,15 @@ module.exports = generators.Base.extend({
           this.destinationPath('app/scripts/modernizr.json')
         );
       }
-      this.fs.copy(
-        this.templatePath('main.js'),
-        this.destinationPath('app/scripts/main.js')
+
+      var tplPath = 'main.js';
+      if (this.app.useAngular1) {
+        tplPath = 'main.angular1.js';
+      }
+      this.fs.copyTpl(
+        this.templatePath(tplPath),
+        this.destinationPath('app/scripts/main.js'),
+        this.app
       );
     },
 

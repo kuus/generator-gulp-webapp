@@ -123,7 +123,9 @@ const cssOptimization = lazypipe()
 
 const jsOptimization = lazypipe()
   .pipe(() => { return $.if(DIST_STATIC, $.replace(LICENSE_PLACEHOLDER, banner)); })
-  .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
+  .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })<% if (useAngular1) { -%>
+  .pipe($.ngAnnotate)
+<% } -%>
   .pipe($.uglify, { preserveComments: 'some', compress: { drop_console: true } })
   .pipe($.replace, LICENSE_PLACEHOLDER, banner)
   .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist')); })
