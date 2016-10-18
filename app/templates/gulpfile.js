@@ -134,7 +134,7 @@ const jsOptimization = lazypipe()
 
 const htmlOptimization = lazypipe()
   .pipe(() => {
-    return $.if(MINIFY_HTML, $.htmlmin({ removeComments: true, loose: false, minifyJS: true, minifyCSS: true, collapseWhitespace: true }), $.prettify({ indent_size: 2, extra_liners: [] }));
+    return $.if(MINIFY_HTML, $.htmlmin({ removeComments: true, loose: false, minifyJS: true, minifyCSS: true, collapseWhitespace: true<% if (useAngular1) { -%>, processScripts: ['text/ng-template']<% } -%> }), $.prettify({ indent_size: 2, extra_liners: [] }));
   });
 
 <% if (useTemplateLanguage) { -%>
