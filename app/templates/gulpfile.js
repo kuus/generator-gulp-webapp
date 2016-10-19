@@ -34,8 +34,8 @@ const banner = tpl([
 // Public tasks
 
 gulp.task('inject', gulp.series(gulp.parallel(injectStylesBower, injectScriptsBower), gulp.parallel(injectStyles, injectScripts)));
-gulp.task('serve', gulp.series('inject', gulp.parallel(<% if (useTemplateLanguage) { -%>views, <% } -%>styles, scripts, <% if (includeModernizr) { -%>modernizr, <% } -%>fonts), watch));
-gulp.task('build', gulp.series(clean, 'inject', gulp.parallel(<% if (useTemplateLanguage) { -%>views, <% } -%>styles, scripts, <% if (includeModernizr) { -%>modernizr, <% } -%>fonts, lint, images, extras), html, optimize, info));
+gulp.task('serve', gulp.series('inject', gulp.parallel(<% if (useTemplateLanguage) { -%>views, <% } %>styles, <% if (includeBabel || useAngular1) { -%>scripts, <% } %><% if (includeModernizr) { -%>modernizr, <% } %>fonts), watch));
+gulp.task('build', gulp.series(clean, 'inject', gulp.parallel(<% if (useTemplateLanguage) { %>views, <% } -%>styles, <% if (includeBabel || useAngular1) { %>scripts, <% } %><% if (includeModernizr) { -%>modernizr, <% } %>fonts, lint, images, extras), html, optimize, info));
 gulp.task('build').description = 'an example of build task: `$ gulp build --dist htmlmin,static,inline`';
 gulp.task('default', gulp.task('serve'));
 gulp.task(serveDist);
@@ -72,6 +72,7 @@ function styles () {
     .pipe(reload({stream: true}));
 }
 
+<% if (includeBabel || useAngular1) { -%>
 function scripts () {
   return gulp.src('app/scripts/**/*.js')
 <% if (includeBabel) { -%>
@@ -86,6 +87,7 @@ function scripts () {
     .pipe(reload({stream: true}))<% } %>;
 }
 
+<% } -%>
 <% if (includeModernizr) { -%>
 function modernizr () {
   var fs = require('fs');
@@ -410,7 +412,6 @@ function watch () {
 <% } if (useTemplateLanguage) { -%>
     '.tmp/*.html',
 <% } -%>
-    'app/scripts/**/*.js',
     'app/images/**/*',
     '.tmp/fonts/**/*'
   ]).on('change', reload);
@@ -419,9 +420,7 @@ function watch () {
   gulp.watch(['app/data/*.json', 'app/*.<%= tplLangExt %>', 'app/layouts/**/*.<%= tplLangExt %>']).on('all', views);
 <% } -%>
   gulp.watch('app/styles/**/*.scss').on('all', styles);
-<% if (includeBabel || useAngular1) { -%>
-  gulp.watch('app/scripts/**/*.js').on('all', scripts);
-<% } -%>
+  gulp.watch('app/scripts/**/*.js').on('all', <% if (includeBabel || useAngular1) { -%>scripts<% } else { %>reload<% } %>);
 <% if (includeModernizr) { -%>
   gulp.watch('app/scripts/vendor.modernizr.json').on('all', modernizr);
 <% } -%>
