@@ -1,6 +1,6 @@
 {
   "name": "generator-kuus-webapp",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Scaffold out a front-end web app",
   "license": "BSD",
   "repository": "kuus/generator-webapp",
@@ -21,9 +21,13 @@
     "web",
     "app",
     "front-end",
+    "optimization",
     "h5bp",
+    "sass",
     "modernizr",
     "jquery",
+    "angular1",
+    "babel",
     "gulp"
   ],
   "dependencies": {
