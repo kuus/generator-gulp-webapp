@@ -15,5 +15,5 @@ angular.module('app', [<% if (includeBootstrap) { %>
    *
    */
   .controller('AppCtrl', function ($scope, $log) {
-    $log('app.js run', $scope);
+    $log.log('app.js run', $scope);
   });
