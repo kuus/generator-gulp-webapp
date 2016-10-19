@@ -42,8 +42,8 @@
     "gulp-cache-bust": "^1.1.0",
     "gulp-cssnano": "^2.1.1",<% if (useTemplateLanguage) { %>
     "gulp-data": "^1.2.1",<% } %>
-    "gulp-eslint": "^2.0.0",
-    "gulp-htmlmin": "^2.0.0",
+    "gulp-eslint": "^3.0.0",
+    "gulp-htmlmin": "^3.0.0",
     "gulp-if": "^2.0.0",
     "gulp-imagemin": "^3.0.1",
     "gulp-inject": "^4.1.0",
@@ -59,18 +59,18 @@
     "gulp-replace": "^0.5.4",
     "gulp-sass": "^2.2.0",<% if (deploy === 'sftp') { %>
     "gulp-sftp": "^0.1.5",<% } %>
-    "gulp-size": "^2.0.0",
+    "gulp-size": "^2.1.0",
     "gulp-sourcemaps": "^1.6.0",
-    "gulp-uglify": "^1.5.2",<% if (includeUncss) { %>
+    "gulp-uglify": "^2.0.0",<% if (includeUncss) { %>
     "gulp-uncss": "^1.0.4",<% } %>
     "gulp-useref": "^3.0.5",
     "gulp-util": "^3.0.7",
     "lazypipe": "^1.0.1",
     "lodash.template": "^4.2.0",
-    "main-bower-files": "^2.13.1",
+    "main-bower-files": "^2.5.0",
     "minimist": "^1.2.0",<% if (deploy === 'ftp') { %>
     "vinyl-ftp": "^0.4.5",<% } %>
-    "wiredep": "^3.0.0"
+    "wiredep": "^4.0.0"
   },
   "eslintConfig": {
     "env": {<% if (includeBabel) { %>

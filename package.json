@@ -30,6 +30,9 @@
     "babel",
     "gulp"
   ],
+  "peerDependencies": {
+    "yo": ">=1.7.1"
+  },
   "dependencies": {
     "chalk": "^1.0.0",
     "change-case": "~2.3.0",
@@ -40,10 +43,10 @@
     "wiredep": "^4.0.0",
     "yeoman-assert": "^2.1.1",
     "yeoman-generator": "^0.24.1",
-    "yosay": "^1.0.0"
+    "yosay": "^1.2.0"
   },
   "devDependencies": {
-    "mocha": "*",
-    "yeoman-test": "^1.1.0"
+    "mocha": "^3.1.0",
+    "yeoman-test": "^1.5.1"
   }
 }
