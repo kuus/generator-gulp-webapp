@@ -24,7 +24,7 @@ const CACHE_BUST = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf(
 const banner = tpl([
   '/*!',
   ' * <@%- pkg.config.namePretty %@> v<@%- pkg.version %@> (<@%- pkg.homepage %@>)',
-  '<@% if (pkg.description) { %@> * <@%- pkg.description %><@% } %@>',
+  '<@% if (pkg.description) { %@> * <@%- pkg.description %@><@% } %@>',
   ' *',
   ' * by <@%- pkg.author.name %@> <<@%- pkg.author.email %@>> (<@%- pkg.author.url %@>)',
   ' * <@%- pkg.license.type %@> <@%- pkg.config.startYear %@><@% if (new Date().getFullYear() > pkg.config.startYear) { %@>-<@%- new Date().getFullYear() %@><@% } %@><@% if (pkg.license.url) { %@> (<@%- pkg.license.url %@>)<@% } %@>',
@@ -138,11 +138,11 @@ function manageCss (path) {
       }));
     })
 <% } -%>
-    .pipe(gulp.dest, 'dist-static' + path)
+    .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
     .pipe($.cssnano, { safe: true, autoprefixer: false })
     .pipe(gulp.dest, 'dist' + path)
     .pipe($.rename, { suffix: '.min' })
-    .pipe(gulp.dest, 'dist-static' + path);
+    .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); });
 }
 
 function manageJs () {
@@ -165,14 +165,15 @@ function manageJs () {
   };
   return lazypipe()
     .pipe($.replace, LICENSE_PLACEHOLDER, banner)
-    .pipe(gulp.dest, 'dist-static')<% if (useAngular1) { -%>
+    .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
+<% if (useAngular1) { -%>
     .pipe($.ngAnnotate)
 <% } -%>
     .pipe($.uglify, uglifyOpts)
     .pipe($.replace, LICENSE_PLACEHOLDER, banner)
     .pipe(gulp.dest, 'dist')
     .pipe($.rename, { suffix: '.min' })
-    .pipe(gulp.dest, 'dist-static');
+    .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); });
 }
 
 function manageHTML () {

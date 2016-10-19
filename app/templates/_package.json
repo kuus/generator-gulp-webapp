@@ -19,6 +19,7 @@
   },
   "private": true,
   "repository": {
+    "preview": "http://<%- name %>.kunderikuus.net/",
     "url": "https://gitlab.com/kuus/<%- name %>"
   },
   "engines": {
