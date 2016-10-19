@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="en"<% if (useAngular1) { %> ng-app="app" ng-controller="AppCtrl"<% } %>>
+<html<% if (includeModernizr) { -%> class="no-js"<% } -%> lang="en"<% if (useAngular1) { %> ng-app="app" ng-controller="AppCtrl"<% } %>>
   <head>
     <meta charset="utf-8">
     <title>{% block meta_title %}<%= prettyName %>{% block meta_title__post %}{% endblock %}{% endblock %}</title>
@@ -8,10 +8,12 @@
     <meta name="author" content="kuus <kunderikuus@gmail.com> (http://kunderikuus.net)">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     {# Place favicon.ico in the root directory #}
+
     <!-- build:css styles/vendor.css inline-->
     <!-- bower:css-->
     <!-- endbower-->
     <!-- endbuild-->
+
     <!-- build:css styles/app.css inline-->
     <link rel="stylesheet" href="styles/app.css">
     <!-- endbuild-->
@@ -19,23 +21,34 @@
   <body class="{% block body_class %}{% endblock %}">
     {% block body %}
     {% endblock %}
-    <script>(function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;e=o.createElement(i);r=o.getElementsByTagName(i)[0];e.src='https://www.google-analytics.com/analytics.js';r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));ga('create','UA-XXXXX-X');ga('send','pageview');</script>
+
+    {# Google Analytics: change UA-XXXXX-X to be your site's ID. #}
+    <script>
+      (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+      function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+      e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+      e.src='https://www.google-analytics.com/analytics.js';
+      r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+      ga('create','UA-XXXXX-X');ga('send','pageview');
+    </script>
+
     <!-- build:js scripts/vendor.js inline-->
 <% if (includeModernizr) { -%>
-    <script src="scripts/modernizr.js"></script>
+    <script src="scripts/vendor.modernizr.js"></script>
 <% } -%>
     <!-- bower:js -->
     <!-- endbower -->
-<% if (useAngular1) { -%>
-    <script src="<%= bsPath %>"></script>
-<% } -%>
 <% if (includeBootstrap && !useAngular1) { bsPlugins.forEach(function (plugin) { -%>
     <script src="<%= bsPath + plugin %>.js"></script>
 <% }); } -%>
+    <!-- injectAppCustomVendors:js-->
+    <!-- endinject-->
     <!-- endbuild-->
 
     <!-- build:js scripts/app.js inline-->
+    <!-- inject:js -->
     <script src="scripts/app.js"></script>
+    <!-- endinject -->
     <!-- endbuild-->
   </body>
 </html>

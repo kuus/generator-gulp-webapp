@@ -24,7 +24,7 @@ const CACHE_BUST = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf(
 const banner = tpl([
   '/*!',
   ' * <@%- pkg.config.namePretty %@> v<@%- pkg.version %@> (<@%- pkg.homepage %@>)',
-  ' * <@%- pkg.description %@>',
+  '<@% if (pkg.description) { %@> * <@%- pkg.description %><@% } %@>',
   ' *',
   ' * by <@%- pkg.author.name %@> <<@%- pkg.author.email %@>> (<@%- pkg.author.url %@>)',
   ' * <@%- pkg.license.type %@> <@%- pkg.config.startYear %@><@% if (new Date().getFullYear() > pkg.config.startYear) { %@>-<@%- new Date().getFullYear() %@><@% } %@><@% if (pkg.license.url) { %@> (<@%- pkg.license.url %@>)<@% } %@>',
@@ -32,12 +32,14 @@ const banner = tpl([
 ].join('\n'))({ pkg: pkg });
 
 // Public tasks
-gulp.task('serve', gulp.series(gulp.parallel(<% if (useTemplateLanguage) { -%>views, <% } -%>styles, scripts, fonts), watch));
-gulp.task('build', gulp.series(clean, gulp.parallel(lint, images, fonts, extras<% if (includeBabel || useAngular1) { -%>, scripts<% } -%>, styles<% if (useTemplateLanguage) { -%>, views<% } -%>), html, optimize, info));
+
+gulp.task('inject', gulp.series(gulp.parallel(injectStylesBower, injectScriptsBower), gulp.parallel(injectStyles, injectScripts)));
+gulp.task('serve', gulp.series('inject', gulp.parallel(<% if (useTemplateLanguage) { -%>views, <% } -%>styles, scripts, <% if (includeModernizr) { -%>modernizr, <% } -%>fonts), watch));
+gulp.task('build', gulp.series(clean, 'inject', gulp.parallel(<% if (useTemplateLanguage) { -%>views, <% } -%>styles, scripts, <% if (includeModernizr) { -%>modernizr, <% } -%>fonts, lint, images, extras), html, optimize, info));
 gulp.task('build').description = 'an example of build task: `$ gulp build --dist htmlmin,static,inline`';
 gulp.task('default', gulp.task('serve'));
 gulp.task(serveDist);
-gulp.task(serveTest<% if (includeBabel) { -%> gulp.task(scripts)<% } -%>);
+gulp.task(serveTest<% if (includeBabel) { -%>, gulp.task(scripts)<% } -%>);
 gulp.task(deploy);
 gulp.task(clean);
 gulp.task(info);
@@ -71,18 +73,8 @@ function styles () {
 }
 
 function scripts () {
-<% if (includeModernizr) { -%>
-  var modernizrConf = require('./app/scripts/modernizr.json');
-  delete modernizrConf.dest;
-<% } if (includeModernizr || includeBabel) { -%>
   return gulp.src('app/scripts/**/*.js')
-<% } if (includeModernizr) { -%>
-    // prepare the custom build @ https://modernizr.com/download
-    .pipe($.modernizr(modernizrConf))
-    .pipe($.if(IS_DIST, $.uglify({ preserveComments: (node, comment) => {
-      return /\*.modernizr v/g.test(comment.value) || LICENSE_PLACEHOLDER === comment.value;
-    }})))
-<% } if (includeBabel) { -%>
+<% if (includeBabel) { -%>
     .pipe($.plumber())
     .pipe($.sourcemaps.init())
     .pipe($.babel())
@@ -90,12 +82,24 @@ function scripts () {
 <% } if (useAngular1) { -%>
     .pipe($.ngAnnotate())
 <% } -%>
-    .pipe(gulp.dest('.tmp/scripts'))
-<% if (includeBabel) { -%>
-    .pipe(reload({stream: true}));
-<% } -%>
+    .pipe(gulp.dest('.tmp/scripts'))<% if (includeBabel || useAngular1) { %>
+    .pipe(reload({stream: true}))<% } %>;
 }
 
+<% if (includeModernizr) { -%>
+function modernizr () {
+  var fs = require('fs');
+  return gulp.src('app/scripts/vendor.modernizr.json') // dummy
+    .pipe($.modernizr('vendor.modernizr.js',
+      JSON.parse(fs.readFileSync('./app/scripts/vendor.modernizr.json'))))
+    .pipe($.if(IS_DIST, $.uglify({ preserveComments: (node, comment) => {
+      return /\*.modernizr v/g.test(comment.value) || LICENSE_PLACEHOLDER === comment.value;
+    }})))
+    .pipe(gulp.dest('.tmp/scripts'))
+    .pipe(reload({stream: true}));
+}
+
+<% } -%>
 function _lintBase(files, options) {
   return gulp.src(files)
     .pipe(reload({stream: true, once: true}))
@@ -206,22 +210,58 @@ function extras () {
   }).pipe(gulp.dest('dist'));
 }
 
-function injectVendors () {
-  gulp.src('app/styles/*.scss')
+function injectStyles () {
+  return gulp.src(['app/styles/*.scss', '!app/styles/_*.scss', 'app/styles/_config.imports.scss'])
+    .pipe($.inject(gulp.src(['app/styles/_*.scss', '!app/styles/_config.*.scss'],
+      { read: false }), {
+        relative: true,
+        empty: true,
+        name: 'injectApp',
+        starttag: '// {{name}}:{{ext}}',
+        endtag: '// endinject',
+        transform: function (filepath, file) {
+          return '@import "' + file.stem.substr(1, file.stem.length) + '";';
+        } }))
+    .pipe(gulp.dest('app/styles'))
+    .pipe(reload({stream: true}));
+}
+
+function injectScripts () {
+<% if (useTemplateLanguage) { -%>
+  return gulp.src('app/_base.<%= tplLangExt %>')
+<% } else { -%>
+  return gulp.src('app/index.html')
+<% } -%>
+    .pipe($.inject(gulp.src(['app/scripts/**/*.js', '!app/scripts/**/vendor.*.js']<% if (!useAngular1) { -%>, { read: false }<% } -%>)<% if (useAngular1) { %>
+        .pipe($.angularFilesort())<% } %>, { relative: true }))
+    .pipe($.inject(gulp.src('app/scripts/**/vendor.*.js',
+      { read: false }), { relative: true, empty: true, name: 'injectAppCustomVendors' }))
+    .pipe(gulp.dest('app'))
+    .pipe(reload({stream: true}));
+}
+
+function injectStylesBower () {
+  return gulp.src(['app/styles/*.scss', '!app/styles/_*.scss', 'app/styles/_config.imports.scss'])
     .pipe(wiredep({
 <% if (includeBootstrap) { -%>
       exclude: ['bootstrap-sass'],
 <% } -%>
       ignorePath: /^(\.\.\/)+/
     }))
-    .pipe(gulp.dest('app/styles'));
+    .pipe(gulp.dest('app/styles'))
+    .pipe(reload({stream: true}));
+}
 
+function injectScriptsBower () {
   return gulp.src('app/*.<%= tplLangExt %>')
-    .pipe(wiredep({<% if (includeBootstrap) { %>
-      exclude: ['bootstrap-sass'],<% } %>
+    .pipe(wiredep({
+<% if (includeBootstrap) { -%>
+      exclude: ['bootstrap-sass'],
+<% } -%>
       ignorePath: /^(\.\.\/)*\.\./
     }))
-    .pipe(gulp.dest('app'));
+    .pipe(gulp.dest('app'))
+    .pipe(reload({stream: true}));
 }
 
 <% if (useTemplateLanguage) { -%>
@@ -249,12 +289,13 @@ function views () {
       path: 'app'
     }))
 <% } -%>
-    .pipe(gulp.dest('.tmp'));
+    .pipe(gulp.dest('.tmp'))
+    .pipe(reload({stream: true}));
 }
-<% } -%>
 
+<% } -%>
 function info () {
-  var info = ['',
+  var infoTpl = ['',
     'Repository: <@%- data.repo %@>',
     '',
     'Pages Preview<@% data.pages.forEach(function (page) { %@>',
@@ -317,7 +358,7 @@ function info () {
     pathData: pathMaster + '/styles'
   };
 
-  $.util.log($.util.colors.green((tpl(info)({ data: data }))));
+  $.util.log($.util.colors.green((tpl(infoTpl)({ data: data }))));
 
   return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
 }
@@ -374,17 +415,26 @@ function watch () {
   ]).on('change', reload);
 
 <% if (useTemplateLanguage) { -%>
-  gulp.watch(['app/data/*.json', 'app/*.<%= tplLangExt %>', 'app/layouts/**/*.<%= tplLangExt %>']).on('all', gulp.parallel(views, reload));
+  gulp.watch(['app/data/*.json', 'app/*.<%= tplLangExt %>', 'app/layouts/**/*.<%= tplLangExt %>']).on('all', views);
 <% } -%>
   gulp.watch('app/styles/**/*.scss').on('all', styles);
 <% if (includeBabel || useAngular1) { -%>
-  gulp.watch('app/scripts/**/*.json').on('all', scripts);
+  gulp.watch('app/scripts/**/*.js').on('all', scripts);
 <% } -%>
 <% if (includeModernizr) { -%>
-  gulp.watch('app/scripts/modernizr.json').on('all', scripts);
+  gulp.watch('app/scripts/vendor.modernizr.json').on('all', modernizr);
 <% } -%>
   gulp.watch('app/fonts/*.*').on('all', fonts);
-  gulp.watch('bower.json').on('all', gulp.parallel(injectVendors, fonts));
+<% if (useTemplateLanguage) { -%>
+  gulp.watch('app/_base.<%= tplLangExt %>').on('change', injectScripts);
+<% } else { -%>
+  gulp.watch('app/index.html').on('change', injectScripts);
+<% } -%>
+  gulp.watch('app/scripts/**/*.js').on('add', injectScripts);
+  gulp.watch('app/scripts/**/*.js').on('unlink', injectScripts);
+  gulp.watch('app/styles/**/*.scss').on('add', injectStyles);
+  gulp.watch('app/styles/**/*.scss').on('unlink', injectStyles);
+  gulp.watch('bower.json').on('all', gulp.parallel(injectScriptsBower, injectStylesBower, fonts));
 }
 
 function serveDist() {

@@ -1,0 +1,11 @@
+/**
+ * Theme: neutral
+ */
+
+// Custom variables
+<% if (includeBootstrap) { -%>
+
+
+// Bootstrap variables
+  $brand-primary: #444;
+<% } -%>

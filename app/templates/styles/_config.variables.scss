@@ -1,0 +1,16 @@
+<% if (includeBootstrap) { %>/**
+ * Bootstrap custom $variables
+ * Override default values and then import them.
+ *
+ */
+$font-family-sans-serif: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+@import "bower_components/bootstrap-sass/assets/stylesheets/bootstrap/variables";
+
+<% } -%>
+/**
+ * <%= prettyName %> $variables (theme indipendent)
+ *
+ */
+$my-var: #fff;
+

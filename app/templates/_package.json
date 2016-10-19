@@ -19,7 +19,7 @@
   },
   "private": true,
   "repository": {
-    "url": "https://bitbucket.org/kuus/<%- name %>"
+    "url": "https://gitlab.com/kuus/<%- name %>"
   },
   "engines": {
     "node": ">=4"
@@ -66,7 +66,7 @@
     "gulp-util": "^3.0.7",
     "lazypipe": "^1.0.1",
     "lodash.template": "^4.2.0",
-    "main-bower-files": "^2.11.1",
+    "main-bower-files": "^2.13.1",
     "minimist": "^1.2.0",<% if (deploy === 'ftp') { %>
     "vinyl-ftp": "^0.4.5",<% } %>
     "wiredep": "^3.0.0"

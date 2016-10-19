@@ -1,22 +1,25 @@
 {
-  "features" : [<% if (useNunjucks) { %>{
-      "title" : "Nunjucks templates",
-      "description" : "A Node.js and Browser-based JavaScript Template Engine"
-    }, <% } %>{
+  "features" : [{
       "title" : "HTML5 Boilerplate",
       "description" : "HTML5 Boilerplate is a professional front-end template for building fast, robust, and adaptable web apps or sites."
-    }, <% if (includeBootstrap) { %>{
-      "title" : "Bootstrap",
-      "description" : "Sleek, intuitive, and powerful mobile first front-end framework for faster and easier web development."
-    }, <% if (useAngular) { %>{
-      "title" : "Angular",
-      "description" : "A development platform for building mobile and desktop web applications"
-    }, <% } if (includeModernizr) { %>{
-      "title" : "Modernizr",
-      "description" : "Modernizr is an open-source JavaScript library that helps you build the next generation of HTML5 and CSS3-powered websites."
-    }, <% } %>{
+    }<% if (useNunjucks) { %>, {
+      "title" : "Nunjucks templates",
+      "description" : "A Node.js and Browser-based JavaScript Template Engine."
+    }<% } if (includeSass) { %>, {
       "title" : "Sass",
       "description" : "Sass is the most mature, stable, and powerful professional grade CSS extension language in the world."
-    }
+    }<% } if (includeBootstrap) { %>, {
+      "title" : "Bootstrap",
+      "description" : "Sleek, intuitive, and powerful mobile first front-end framework for faster and easier web development."
+    }<% } if (useAngular1) { %>, {
+      "title" : "Angular",
+      "description" : "A development platform for building mobile and desktop web applications."
+    }<% } if (includeBabel) { %>, {
+      "title" : "Babel",
+      "description" : "The compiler for writing next generation JavaScript."
+    }<% } if (includeModernizr) { %>, {
+      "title" : "Modernizr",
+      "description" : "Modernizr is an open-source JavaScript library that helps you build the next generation of HTML5 and CSS3-powered websites."
+    }<% } %>
   ]
 }

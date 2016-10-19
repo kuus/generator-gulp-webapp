@@ -164,7 +164,7 @@ module.exports = generators.Base.extend({
         generatorName: this.pkg.name,
         generatorVersion: this.pkg.version,
         testFramework: this.options['test-framework'],
-        ngBootstrapFileame: 'vendor--ui-bootstrap-custom-tpls-2.2.0.js'
+        ngBootstrapFilename: 'vendor.ui-bootstrap-custom-tpls.js'
       };
 
     }.bind(this));
@@ -279,10 +279,23 @@ module.exports = generators.Base.extend({
     },
 
     styles: function () {
+      var self = this;
       var css = 'app';
+      var sassPartialsPaths = [
+        '_config.imports.scss', '_config.theme.scss', '_config.variables.scss',
+        '_vendor.bootstrap-tweaks.scss'
+      ];
 
       if (this.app.includeSass) {
         css += '.scss';
+
+        sassPartialsPaths.forEach(function (filename) {
+          self.fs.copyTpl(
+            self.templatePath('styles/' + filename),
+            self.destinationPath('app/styles/' + filename),
+            self.app
+          );
+        });
       } else {
         css += '.css';
       }
@@ -297,8 +310,8 @@ module.exports = generators.Base.extend({
     scripts: function () {
       if (this.app.includeModernizr) {
         this.fs.copy(
-          this.templatePath('modernizr.json'),
-          this.destinationPath('app/scripts/modernizr.json')
+          this.templatePath('vendor.modernizr.json'),
+          this.destinationPath('app/scripts/vendor.modernizr.json')
         );
       }
 
@@ -312,10 +325,10 @@ module.exports = generators.Base.extend({
         this.app
       );
 
-      if (this.app.useAngular1) {
+      if (this.app.useAngular1 && this.app.includeBootstrap) {
         this.fs.copyTpl(
-          this.templatePath(this.app.ngBootstrapFileame),
-          this.destinationPath('app/scripts/' + this.app.ngBootstrapFileame)
+          this.templatePath(this.app.ngBootstrapFilename),
+          this.destinationPath('app/scripts/' + this.app.ngBootstrapFilename)
         );
       }
     },
@@ -326,7 +339,7 @@ module.exports = generators.Base.extend({
       // path prefix for Bootstrap JS files
       if (this.app.includeBootstrap) {
         if (this.app.useAngular1) {
-          this.app.bsPath = 'scripts/' + this.app.ngBootstrapFileame;
+          this.app.bsPath = 'scripts/' + this.app.ngBootstrapFilename;
         } else {
           this.app.bsPath = '/bower_components/';
           this.app.bsPlugins = [
@@ -397,6 +410,7 @@ module.exports = generators.Base.extend({
     },
 
     misc: function () {
+      mkdirp('bower_components'); // wiredep breaks without it, if no packages are installed
       mkdirp('app/images');
       mkdirp('app/fonts');
     }
