@@ -302,14 +302,14 @@ function info () {
     'Repository: <@%- data.repo %@>',
     '',
     'Pages Preview<@% data.pages.forEach(function (page) { %@>',
-    '  <@%- page.title %@>: <@%- page.url %@>',
-    '<@% }) %@>',
+    '  <@%- page.title %@>: <@%- page.url %@><@% }) %@>',
+    '',
     'Static Files Sources',
     '  Styles: <@%- data.pathStaticStyles %@>',
     '  Scripts: <@%- data.pathStaticScripts %@>',
     '',
     'Data Source',
-    '  Styles: <@%- data.pathData %@>'
+    '  <@%- data.pathData %@>'
   ].join('\n');
   var pathRepo = pkg.repository.url;
   var pathMaster = pathRepo + '/tree/master';
@@ -358,7 +358,7 @@ function info () {
     pages: getPages(),
     pathStaticStyles: pathMaster + '/dist-static/styles',
     pathStaticScripts: pathMaster + '/dist-static/scripts',
-    pathData: pathMaster + '/styles'
+    pathData: pathMaster + '/app/data'
   };
 
   $.util.log($.util.colors.green((tpl(infoTpl)({ data: data }))));
