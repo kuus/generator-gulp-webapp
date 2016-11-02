@@ -17,6 +17,7 @@ const IS_DIST = !!argv.dist || !!argv.d;
 <% if (includeUncss) { -%>
 const UNCSS = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf('uncss') !== -1 : false;
 <% } -%>
+const MANGLE_JS = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf('mangle') !== -1 : false;
 const MINIFY_HTML = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf('htmlmin') !== -1 : false;
 const INLINE_EVERYTHING = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf('inline') !== -1 : false;
 const DIST_STATIC = typeof argv.dist === 'string' ? argv.dist.split(',').indexOf('static') !== -1 : false;
@@ -36,7 +37,7 @@ const banner = tpl([
 gulp.task('inject', gulp.series(gulp.parallel(injectStylesBower, injectScriptsBower), gulp.parallel(injectStyles, injectScripts)));
 gulp.task('serve', gulp.series('inject', gulp.parallel(<% if (useTemplateLanguage) { -%>views, <% } %>styles, <% if (includeBabel || useAngular1) { -%>scripts, <% } %><% if (includeModernizr) { -%>modernizr, <% } %>fonts), watch));
 gulp.task('build', gulp.series(clean, 'inject', gulp.parallel(<% if (useTemplateLanguage) { %>views, <% } -%>styles, <% if (includeBabel || useAngular1) { %>scripts, <% } %><% if (includeModernizr) { -%>modernizr, <% } %>fonts, lint, images, extras), html, optimize, info));
-gulp.task('build').description = 'an example of build task: `$ gulp build --dist htmlmin,static,inline`';
+gulp.task('build').description = 'an example of build task: `$ gulp build --dist mangle,htmlmin,static,inline`';
 gulp.task('default', gulp.task('serve'));
 gulp.task(serveDist);
 gulp.task(serveTest<% if (includeBabel) { -%>, gulp.task(scripts)<% } -%>);
@@ -132,7 +133,8 @@ function lintTest () {
 }
 
 function manageCss (path) {
-  return lazypipe()<% if (includeUncss) { -%>
+  return lazypipe()
+<% if (includeUncss) { -%>
     .pipe(() => {
       return $.if(UNCSS, $.uncss({
         html: ['app/*.html', '.tmp/*.html'],
@@ -140,11 +142,11 @@ function manageCss (path) {
       }));
     })
 <% } -%>
-    .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
+    .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static' + path)); })
     .pipe($.cssnano, { safe: true, autoprefixer: false })
     .pipe(gulp.dest, 'dist' + path)
     .pipe($.rename, { suffix: '.min' })
-    .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); });
+    .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static' + path)); });
 }
 
 function manageJs () {
@@ -160,11 +162,13 @@ function manageJs () {
       global_defs: {
         DEBUG: false
       }
-    },
-    mangleProperties: {
-      regex: /^_(?!format|default|value|toggleActive|process)(.+)/,
     }
   };
+  if (MANGLE_JS) {
+    uglifyOpts.mangleProperties = {
+      regex: /^_(?!format|default|value|toggleActive|process)(.+)/,
+    };
+  }
   return lazypipe()
     .pipe($.replace, LICENSE_PLACEHOLDER, banner)
     .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
@@ -472,11 +476,11 @@ function deploy () {
       host: secrets.ftp.host,
       user: secrets.ftp.user,
       passphrase: secrets.ssh.passphrase,
-      remotePath: secrets.ftp.publicPath + '/<%= name %>/'
+      remotePath: secrets.ftp.publicPath  + '/' + pkg.name + '/'
     }));
 <% } else if (deploy === 'ftp') { -%>
-    .pipe(conn.newer('/public_html/<%= name %>'))
-    .pipe(conn.dest('/public_html/<%= name %>'));
+    .pipe(conn.newer('/public_html/' + pkg.name))
+    .pipe(conn.dest('/public_html/' + pkg.name));
 <% } -%>
 }
 

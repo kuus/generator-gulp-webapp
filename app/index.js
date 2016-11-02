@@ -56,7 +56,7 @@ module.exports = generators.Base.extend({
 
   prompting: function () {
     if (!this.options['skip-welcome-message']) {
-      this.log(yosay('\'Allo \'allo! Out of the box I include HTML5 Boilerplate, jQuery, and a gulpfile to build your app.'));
+      this.log(yosay('\'Allo \'allo! Out of the box I include HTML5 Boilerplate and a gulpfile to build your app.'));
     }
 
     var prompts = [{
