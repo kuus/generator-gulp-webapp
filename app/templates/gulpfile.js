@@ -428,11 +428,6 @@ function watch () {
   gulp.watch('app/scripts/vendor.modernizr.json').on('all', modernizr);
 <% } -%>
   gulp.watch('app/fonts/*.*').on('all', fonts);
-<% if (useTemplateLanguage) { -%>
-  gulp.watch('app/_base.<%= tplLangExt %>').on('change', injectScripts);
-<% } else { -%>
-  gulp.watch('app/index.html').on('change', injectScripts);
-<% } -%>
   gulp.watch('app/scripts/**/*.js').on('add', injectScripts);
   gulp.watch('app/scripts/**/*.js').on('unlink', injectScripts);
   gulp.watch('app/styles/**/*.scss').on('add', injectStyles);
