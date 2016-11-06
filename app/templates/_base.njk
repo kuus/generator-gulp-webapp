@@ -22,6 +22,7 @@
     {% block body %}
     {% endblock %}
 
+    {% block body_scripts %}
     {# Google Analytics: change UA-XXXXX-X to be your site's ID. #}
     <script>
       (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
@@ -50,5 +51,9 @@
     <script src="scripts/app.js"></script>
     <!-- endinject -->
     <!-- endbuild-->
+    {% endblock %}
+
+    {% block body_end %}
+    {% endblock %}
   </body>
 </html>
