@@ -296,8 +296,7 @@ function views () {
       path: 'app'
     }))
 <% } -%>
-    .pipe(gulp.dest('.tmp'))
-    .pipe(reload({stream: true}));
+    .pipe(gulp.dest('.tmp'));
 }
 
 <% } -%>
