@@ -61,7 +61,7 @@ function styles () {
       require('css-mqpacker')({sort: true})
     ]))
     .pipe($.if(IS_DIST, $.base64({
-      extensions: ['svg', 'png', /\.jpg#datauri$/i],
+      extensions: ['svg', 'png', 'gif', /\.jpg#datauri$/i],
       // exclude:    [/\.server\.(com|net)\/dynamic\//, '--live.jpg'],
       // maxImageSize: 8*1024, // bytes
       debug: true

@@ -282,9 +282,11 @@ module.exports = generators.Base.extend({
       var self = this;
       var css = 'app';
       var sassPartialsPaths = [
-        '_config.imports.scss', '_config.theme.scss', '_config.variables.scss',
-        '_vendor.bootstrap-tweaks.scss'
-      ];
+        '_config.imports.scss', '_config.theme.scss', '_config.variables.scss'];
+
+      if (this.app.includeBootstrap) {
+        sassPartialsPaths.push('_vendor.bootstrap-tweaks.scss');
+      }
 
       if (this.app.includeSass) {
         css += '.scss';
