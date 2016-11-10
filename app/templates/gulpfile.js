@@ -202,7 +202,7 @@ function images () {
 }
 
 function fonts () {
-  return gulp.src(require('main-bower-files')('**/*.{eot,svg,ttf,woff,woff2}', (err) => {})
+  return gulp.src(require('main-bower-files')('**/*.{eot,svg,ttf,woff,woff2}', () => {})
     .concat(`${PATH_APP}/fonts/**/*`))
     .pipe(gulp.dest(`${PATH_TEMP}/fonts`))
     .pipe(gulp.dest(`${PATH_DIST}/fonts`));
