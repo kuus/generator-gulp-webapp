@@ -32,6 +32,12 @@ const banner = tpl([
   ' */\n'
 ].join('\n'))({ pkg: pkg });
 
+const pkgPaths = pkg.config.paths || {};
+const PATH_TEMP = pkgPaths.tmp || '.tmp';
+const PATH_APP = pkgPaths.app || 'app';
+const PATH_DIST = pkgPaths.dist || 'dist';
+const PATH_DIST_STATIC = pkgPaths['dist-static'] || 'dist-static';
+
 // Public tasks
 
 gulp.task('inject', gulp.series(gulp.parallel(injectStylesBower, injectScriptsBower), gulp.parallel(injectStyles, injectScripts)));
@@ -48,7 +54,7 @@ gulp.task(info);
 // Private tasks
 
 function styles () {
-  return gulp.src('app/styles/*.scss')
+  return gulp.src(`${PATH_APP}/styles/*.scss`)
     .pipe($.plumber())
     .pipe($.sourcemaps.init())
     .pipe($.sass.sync({
@@ -68,14 +74,14 @@ function styles () {
     })))
     .pipe($.if(IS_DIST, $.replace(LICENSE_PLACEHOLDER, banner)))
     .pipe($.sourcemaps.write())
-    .pipe(gulp.dest('.tmp/styles'))
+    .pipe(gulp.dest(`${PATH_TEMP}/styles`))
     .pipe($.if(IS_DIST, manageCss('/styles')()))
     .pipe(reload({stream: true}));
 }
 
 <% if (includeBabel || useAngular1) { -%>
 function scripts () {
-  return gulp.src('app/scripts/**/*.js')
+  return gulp.src(`${PATH_APP}/scripts/**/*.js`)
 <% if (includeBabel) { -%>
     .pipe($.plumber())
     .pipe($.sourcemaps.init())
@@ -84,7 +90,7 @@ function scripts () {
 <% } if (useAngular1) { -%>
     .pipe($.ngAnnotate())
 <% } -%>
-    .pipe(gulp.dest('.tmp/scripts'))<% if (includeBabel || useAngular1) { %>
+    .pipe(gulp.dest(`${PATH_TEMP}/scripts`))<% if (includeBabel || useAngular1) { %>
     .pipe(reload({stream: true}))<% } %>;
 }
 
@@ -92,13 +98,13 @@ function scripts () {
 <% if (includeModernizr) { -%>
 function modernizr () {
   var fs = require('fs');
-  return gulp.src('app/scripts/vendor.modernizr.json') // dummy
+  return gulp.src(`${PATH_APP}/scripts/vendor.modernizr.json`) // dummy
     .pipe($.modernizr('vendor.modernizr.js',
-      JSON.parse(fs.readFileSync('./app/scripts/vendor.modernizr.json'))))
+      JSON.parse(fs.readFileSync(`${PATH_APP}/scripts/vendor.modernizr.json`))))
     .pipe($.if(IS_DIST, $.uglify({ preserveComments: (node, comment) => {
       return /\*.modernizr v/g.test(comment.value) || LICENSE_PLACEHOLDER === comment.value;
     }})))
-    .pipe(gulp.dest('.tmp/scripts'))
+    .pipe(gulp.dest(`${PATH_TEMP}/scripts`))
     .pipe(reload({stream: true}));
 }
 
@@ -112,10 +118,10 @@ function _lintBase(files, options) {
 }
 
 function lint () {
-  return _lintBase('app/scripts/**/*.js', {
+  return _lintBase(`${PATH_APP}/scripts/**/*.js`, {
       fix: true
     })
-    .pipe(gulp.dest('app/scripts'));
+    .pipe(gulp.dest(`${PATH_APP}/scripts`));
 }
 
 function lintTest () {
@@ -137,16 +143,16 @@ function manageCss (path) {
 <% if (includeUncss) { -%>
     .pipe(() => {
       return $.if(UNCSS, $.uncss({
-        html: ['app/*.html', '.tmp/*.html'],
+        html: [`${PATH_APP}/*.html`, `${PATH_TEMP}/*.html`],
         ignoreSheets: '/bower_components/g'
       }));
     })
 <% } -%>
-    .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static' + path)); })
+    .pipe(() => { return $.if(DIST_STATIC, gulp.dest(PATH_DIST_STATIC + path)); })
     .pipe($.cssnano, { safe: true, autoprefixer: false })
-    .pipe(gulp.dest, 'dist' + path)
+    .pipe(gulp.dest, PATH_DIST + path)
     .pipe($.rename, { suffix: '.min' })
-    .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static' + path)); });
+    .pipe(() => { return $.if(DIST_STATIC, gulp.dest(PATH_DIST_STATIC + path)); });
 }
 
 function manageJs () {
@@ -171,15 +177,15 @@ function manageJs () {
   }
   return lazypipe()
     .pipe($.replace, LICENSE_PLACEHOLDER, banner)
-    .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); })
+    .pipe(() => { return $.if(DIST_STATIC, gulp.dest(PATH_DIST_STATIC)); })
 <% if (useAngular1) { -%>
     .pipe($.ngAnnotate)
 <% } -%>
     .pipe($.uglify, uglifyOpts)
     .pipe($.replace, LICENSE_PLACEHOLDER, banner)
-    .pipe(gulp.dest, 'dist')
+    .pipe(gulp.dest, PATH_DIST)
     .pipe($.rename, { suffix: '.min' })
-    .pipe(() => { return $.if(DIST_STATIC, gulp.dest('dist-static')); });
+    .pipe(() => { return $.if(DIST_STATIC, gulp.dest(PATH_DIST_STATIC)); });
 }
 
 function manageHTML () {
@@ -190,36 +196,36 @@ function manageHTML () {
 }
 
 function images () {
-  return gulp.src('app/images/**/*')
+  return gulp.src(`${PATH_APP}/images/**/*`)
     .pipe($.cache($.imagemin()))
-    .pipe(gulp.dest('dist/images'));
+    .pipe(gulp.dest(`${PATH_DIST}/images`));
 }
 
 function fonts () {
   return gulp.src(require('main-bower-files')('**/*.{eot,svg,ttf,woff,woff2}', (err) => {})
-    .concat('app/fonts/**/*'))
-    .pipe(gulp.dest('.tmp/fonts'))
-    .pipe(gulp.dest('dist/fonts'));
+    .concat(`${PATH_APP}/fonts/**/*`))
+    .pipe(gulp.dest(`${PATH_TEMP}/fonts`))
+    .pipe(gulp.dest(`${PATH_DIST}/fonts`));
 }
 
 function extras () {
   return gulp.src([
 <% if (!useTemplateLanguage) { -%>
-    '!app/*.html',
+    `!${PATH_APP}/*.html`,
 <% } else { -%>
-    '!app/*.<%= tplLangExt %>',
-    '!app/layouts',
+    `!${PATH_APP}/*.<%= tplLangExt %>`,
+    `!${PATH_APP}/layouts`,
 <% } -%>
-    'app/data/**/*.json'
+    `${PATH_APP}/data/**/*.json`
   ], {
     dot: true,
-    base: 'app'
-  }).pipe(gulp.dest('dist'));
+    base: PATH_APP
+  }).pipe(gulp.dest(PATH_DIST));
 }
 
 function injectStyles () {
-  return gulp.src(['app/styles/*.scss', '!app/styles/_*.scss', 'app/styles/_config.imports.scss'])
-    .pipe($.inject(gulp.src(['app/styles/_*.scss', '!app/styles/_config.*.scss'],
+  return gulp.src([`${PATH_APP}/styles/*.scss`, `!${PATH_APP}/styles/_*.scss`, `${PATH_APP}/styles/_config.imports.scss`])
+    .pipe($.inject(gulp.src([`${PATH_APP}/styles/_*.scss`, `!${PATH_APP}/styles/_config.*.scss`],
       { read: false }), {
         relative: true,
         empty: true,
@@ -229,45 +235,45 @@ function injectStyles () {
         transform: function (filepath, file) {
           return '@import "' + file.stem.substr(1, file.stem.length) + '";';
         } }))
-    .pipe(gulp.dest('app/styles'))
+    .pipe(gulp.dest(`${PATH_APP}/styles`))
     .pipe(reload({stream: true}));
 }
 
 function injectScripts () {
 <% if (useTemplateLanguage) { -%>
-  return gulp.src('app/_base.<%= tplLangExt %>')
+  return gulp.src(`${PATH_APP}/_base.<%= tplLangExt %>`)
 <% } else { -%>
-  return gulp.src('app/index.html')
+  return gulp.src(`${PATH_APP}/index.html`)
 <% } -%>
-    .pipe($.inject(gulp.src(['app/scripts/**/*.js', '!app/scripts/**/vendor.*.js']<% if (!useAngular1) { -%>, { read: false }<% } -%>)<% if (useAngular1) { %>
+    .pipe($.inject(gulp.src([`${PATH_APP}/scripts/**/*.js`, `!${PATH_APP}/scripts/**/vendor.*.js`]<% if (!useAngular1) { -%>, { read: false }<% } -%>)<% if (useAngular1) { %>
         .pipe($.angularFilesort())<% } %>, { relative: true }))
-    .pipe($.inject(gulp.src('app/scripts/**/vendor.*.js',
+    .pipe($.inject(gulp.src(`${PATH_APP}/scripts/**/vendor.*.js`,
       { read: false }), { relative: true, empty: true, name: 'injectAppCustomVendors' }))
-    .pipe(gulp.dest('app'))
+    .pipe(gulp.dest(PATH_APP))
     .pipe(reload({stream: true}));
 }
 
 function injectStylesBower () {
-  return gulp.src(['app/styles/*.scss', '!app/styles/_*.scss', 'app/styles/_config.imports.scss'])
+  return gulp.src([`${PATH_APP}/styles/*.scss`, `!${PATH_APP}/styles/_*.scss`, `${PATH_APP}/styles/_config.imports.scss`])
     .pipe(wiredep({
 <% if (includeBootstrap) { -%>
       exclude: ['bootstrap-sass'],
 <% } -%>
       ignorePath: /^(\.\.\/)+/
     }))
-    .pipe(gulp.dest('app/styles'))
+    .pipe(gulp.dest(`${PATH_APP}/styles`))
     .pipe(reload({stream: true}));
 }
 
 function injectScriptsBower () {
-  return gulp.src('app/*.<%= tplLangExt %>')
+  return gulp.src(`${PATH_APP}/*.<%= tplLangExt %>`)
     .pipe(wiredep({
 <% if (includeBootstrap) { -%>
       exclude: ['bootstrap-sass'],
 <% } -%>
       ignorePath: /^(\.\.\/)*\.\./
     }))
-    .pipe(gulp.dest('app'))
+    .pipe(gulp.dest(PATH_APP))
     .pipe(reload({stream: true}));
 }
 
@@ -277,13 +283,13 @@ function views () {
   var fs = require('fs');
   var path = require('path');
 
-  return gulp.src(['app/*.<%= tplLangExt %>', '!app/_*.<%= tplLangExt %>'])
+  return gulp.src([`${PATH_APP}/*.<%= tplLangExt %>`, `!${PATH_APP}/_*.<%= tplLangExt %>`])
     .pipe($.data((file) => {
       var data = {
-        common: JSON.parse(fs.readFileSync('./app/data/_common.json')),
-        dummy: JSON.parse(fs.readFileSync('./app/data/_dummy.json'))
+        common: JSON.parse(fs.readFileSync(`./${PATH_APP}/data/_common.json`)),
+        dummy: JSON.parse(fs.readFileSync(`./${PATH_APP}/data/_dummy.json`))
       };
-      var dataFilePath = './app/data/' + path.basename(file.path, '.<%= tplLangExt %>') + '.json';
+      var dataFilePath = `./${PATH_APP}/data/` + path.basename(file.path, '.<%= tplLangExt %>') + '.json';
       try {
         return extend(data, JSON.parse(fs.readFileSync(dataFilePath)));
       } catch(e) {
@@ -293,10 +299,10 @@ function views () {
     }))
 <% if (useNunjucks) { -%>
     .pipe($.nunjucksRender({
-      path: 'app'
+      path: PATH_APP
     }))
 <% } -%>
-    .pipe(gulp.dest('.tmp'));
+    .pipe(gulp.dest(PATH_TEMP));
 }
 
 <% } -%>
@@ -342,7 +348,7 @@ function info () {
   };
   var getPages = function () {
     var pages = [];
-    fromDir('dist', filterExt, function (filename) {
+    fromDir(PATH_DIST, filterExt, function (filename) {
       var title;
       var url;
       if (filename === 'index.html') {
@@ -359,38 +365,38 @@ function info () {
   var data = {
     repo: pathRepo,
     pages: getPages(),
-    pathStaticStyles: pathMaster + '/dist-static/styles',
-    pathStaticScripts: pathMaster + '/dist-static/scripts',
-    pathData: pathMaster + '/app/data'
+    pathStaticStyles: `${pathMaster}/${PATH_DIST_STATIC}/styles`,
+    pathStaticScripts: `${pathMaster}/${PATH_DIST_STATIC}/scripts`,
+    pathData: `${pathMaster}/${PATH_APP}/data`
   };
 
   $.util.log($.util.colors.green((tpl(infoTpl)({ data: data }))));
 
-  return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
+  return gulp.src(`${PATH_DIST}/**/*`).pipe($.size({title: 'build', gzip: true}));
 }
 
 function html () {
 <% if (useTemplateLanguage) { -%>
-  return gulp.src(['app/*.html', '.tmp/*.html'])
+  return gulp.src([`${PATH_APP}/*.html`, `${PATH_TEMP}/*.html`])
 <% } else { -%>
-  return gulp.src('app/*.html')
+  return gulp.src(`${PATH_APP}/*.html`)
 <% } -%>
-    .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))
+    .pipe($.useref({searchPath: [`${PATH_TEMP}`, `${PATH_APP}`, '.']}))
     .pipe($.if('*.css', manageCss('')()))
     .pipe($.if('*.js', manageJs()()))
     .pipe($.if('*.html', manageHTML()()))
-    .pipe($.if('*.html', gulp.dest('dist')));
+    .pipe($.if('*.html', gulp.dest(PATH_DIST)));
 }
 
 function optimize () {
-  return gulp.src('dist/*.html')
+  return gulp.src(`${PATH_DIST}/*.html`)
     .pipe($.if(INLINE_EVERYTHING, $.inlineSource()))
     .pipe($.if(CACHE_BUST, $.cacheBust()))
-    .pipe(gulp.dest('dist'));
+    .pipe(gulp.dest(`${PATH_DIST}`));
 }
 
 function clean () {
-  return del.bind(null, ['.tmp', 'dist'])();
+  return del.bind(null, [`${PATH_TEMP}`, `${PATH_DIST}`])();
 }
 
 function server (baseDir, routes) {
@@ -406,45 +412,45 @@ function server (baseDir, routes) {
 }
 
 function watch () {
-  server(['.tmp', 'app'], { '/bower_components': 'bower_components' });
+  server([`${PATH_TEMP}`, `${PATH_APP}`], { '/bower_components': 'bower_components' });
 
   // watch for changes
   gulp.watch([
 <% if (!useTemplateLanguage) { -%>
-    'app/*.html',
+    `${PATH_APP}/*.html`,
 <% } if (useTemplateLanguage) { -%>
-    '.tmp/*.html',
+    `${PATH_TEMP}/*.html`,
 <% } -%>
-    'app/images/**/*',
-    '.tmp/fonts/**/*'
+    `${PATH_APP}/images/**/*`,
+    `${PATH_TEMP}/fonts/**/*`
   ]).on('change', reload);
 
 <% if (useTemplateLanguage) { -%>
-  gulp.watch(['app/data/*.json', 'app/*.<%= tplLangExt %>', 'app/layouts/**/*.<%= tplLangExt %>']).on('all', views);
+  gulp.watch([`${PATH_APP}/data/*.json`, `${PATH_APP}/*.<%= tplLangExt %>`, `${PATH_APP}/layouts/**/*.<%= tplLangExt %>`]).on('all', views);
 <% } -%>
-  gulp.watch('app/styles/**/*.scss').on('all', styles);
-  gulp.watch('app/scripts/**/*.js').on('all', <% if (includeBabel || useAngular1) { -%>scripts<% } else { %>reload<% } %>);
+  gulp.watch(`${PATH_APP}/styles/**/*.scss`).on('all', styles);
+  gulp.watch(`${PATH_APP}/scripts/**/*.js`).on('all', <% if (includeBabel || useAngular1) { -%>scripts<% } else { %>reload<% } %>);
 <% if (includeModernizr) { -%>
-  gulp.watch('app/scripts/vendor.modernizr.json').on('all', modernizr);
+  gulp.watch(`${PATH_APP}/scripts/vendor.modernizr.json`).on('all', modernizr);
 <% } -%>
-  gulp.watch('app/fonts/*.*').on('all', fonts);
-  gulp.watch('app/scripts/**/*.js').on('add', injectScripts);
-  gulp.watch('app/scripts/**/*.js').on('unlink', injectScripts);
-  gulp.watch('app/styles/**/*.scss').on('add', injectStyles);
-  gulp.watch('app/styles/**/*.scss').on('unlink', injectStyles);
+  gulp.watch(`${PATH_APP}/fonts/*.*`).on('all', fonts);
+  gulp.watch(`${PATH_APP}/scripts/**/*.js`).on('add', injectScripts);
+  gulp.watch(`${PATH_APP}/scripts/**/*.js`).on('unlink', injectScripts);
+  gulp.watch(`${PATH_APP}/styles/**/*.scss`).on('add', injectStyles);
+  gulp.watch(`${PATH_APP}/styles/**/*.scss`).on('unlink', injectStyles);
   gulp.watch('bower.json').on('all', gulp.parallel(injectScriptsBower, injectStylesBower, fonts));
 }
 
 function serveDist() {
-  server('dist');
+  server(`${PATH_DIST}`);
 }
 
 function serveTest() {
-  server('test', {<% if (includeBabel) { -%>'/scripts': '.tmp/scripts',<% } else { -%>'/scripts': 'app/scripts',<% } -%> '/bower_components': 'bower_components' });
+  server('test', {<% if (includeBabel) { -%>'/scripts': `${PATH_TEMP}/scripts`,<% } else { -%>'/scripts': `${PATH_APP}/scripts`,<% } -%> '/bower_components': 'bower_components' });
   gulp.watch('test/spec/**/*.js').on('change', reload);
   gulp.watch('test/spec/**/*.js').on('all', lintTest);
 <% if (includeBabel) { -%>
-  gulp.watch('app/scripts/**/*.js').on('change', scripts);
+  gulp.watch(`${PATH_APP}/scripts/**/*.js`).on('change', scripts);
 <% } -%>
 }
 
@@ -461,8 +467,8 @@ function deploy () {
     log: $.util.log
   });
 <% } -%>
-  return gulp.src('dist/**', {
-      base: 'dist',
+  return gulp.src(`${PATH_DIST}/**`, {
+      base: `${PATH_DIST}`,
       buffer: false
     })
 <% if (deploy === 'sftp') { -%>

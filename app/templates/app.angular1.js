@@ -1,3 +1,4 @@
+/* global angular */
 /* jshint devel:true */
 /*! @license credits */
 

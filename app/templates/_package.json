@@ -5,7 +5,13 @@
   "config": {
     "namePretty": "<%- prettyName %>",
     "nameShort": "<%- shortName %>",
-    "startYear": <%- year %>
+    "startYear": <%- year %>,
+    "paths": {
+      "tmp": ".tmp",
+      "app": "app",
+      "dist": "dist",
+      "dist-static": "dist-static"
+    }
   },
   "homepage": "http://<%- name %>.com",
   "author": {
