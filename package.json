@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "chalk": "^1.0.0",
-    "change-case": "~2.3.0",
+    "change-case": "~3.0.1",
     "generator-jasmine": "^0.2.1",
     "generator-mocha": "^0.3.0",
     "gulp-replace": "^0.5.4",
