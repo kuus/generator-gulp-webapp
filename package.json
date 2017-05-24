@@ -46,7 +46,7 @@
     "yosay": "^1.2.0"
   },
   "devDependencies": {
-    "mocha": "^3.1.0",
+    "mocha": "^3.4.2",
     "yeoman-test": "^1.5.1"
   }
 }
