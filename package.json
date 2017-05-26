@@ -36,7 +36,7 @@
   "dependencies": {
     "chalk": "^1.0.0",
     "change-case": "~2.3.0",
-    "generator-jasmine": "^0.2.1",
+    "generator-jasmine": "^1.0.0",
     "generator-mocha": "^0.3.0",
     "gulp-replace": "^0.5.4",
     "mkdirp": "^0.5.1",
